@@ -6,6 +6,7 @@ This plan breaks the Star Raiders clone into iterative phases sized for an AI co
 - Target: Unity 2022+ LTS, C# 10+, URP (or built-in pipeline if simpler). Use prefab-based UI, ScriptableObjects for data, and Input System package.
 - Architecture: Scene bootstrap → persistent managers (GameState, Audio, Input), feature systems in separate assemblies/namespaces.
 - Deliverables per phase: code, Unity assets, minimal tests (PlayMode/EditMode) when applicable, and updated documentation.
+- Units: **metron** = distance, **centon** = time (100 centons ≈ 1 minute); use values from QUICKSTART Section 1.
 - Definition of done (all phases): meets PRD requirements, runs in Editor, basic smoke test executed, notes in changelog/README section.
 
 ## Phase 0 – Repository & Context Intake
@@ -13,7 +14,7 @@ This plan breaks the Star Raiders clone into iterative phases sized for an AI co
 **Tasks:** Read all context docs; note key sections for later; catalog `/images` for HUD/colors.  
 **AI Agent Prompt:**  
 ```
-You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Raiders_PRD.md (focus Sections 5-15, 21-27), QUICKSTART_DEVELOPER_GUIDE.md, star_raiders_technical_notes.txt, star_raiders_visual_mockups.txt, star_raiders_visual_reference.txt, and scan /images. Produce a short summary of constraints, required screens (8), controls, PESCLR rules, and performance targets. Do not write code.
+You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Raiders_PRD.md (focus Sections 5-15 for gameplay systems and 21-27 for visuals/performance/testing), QUICKSTART_DEVELOPER_GUIDE.md, star_raiders_technical_notes.txt, star_raiders_visual_mockups.txt, star_raiders_visual_reference.txt, and scan /images. Produce a short summary of constraints, required screens (8), controls, PESCLR rules, and performance targets. Do not write code.
 ```
 
 ## Phase 1 – Unity Project Setup
@@ -45,7 +46,7 @@ Define Input Actions asset for controls in QUICKSTART Section 3 & 19 (PRD). Map 
 **Tasks:** ScriptableObject for galaxy config; data structs for sectors, starbases, enemies; utilities for Manhattan distance and threats; seed-based initialization; save/load stubs.  
 **AI Agent Prompt:**  
 ```
-Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART Section 1. Include sector types, player location, starbases, enemies. Implement distance calculations and threat detection (CheckStarbaseThreats). Add JSON save/load placeholders. Provide EditMode tests for generation and threat rules.
+Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART Section 1. Include sector types, player location, starbases, enemies. Implement distance calculations and threat detection (CheckStarbaseThreats from QUICKSTART Section 3 core functions). Add JSON save/load placeholders. Provide EditMode tests for generation and threat rules.
 ```
 
 ## Phase 5 – Rendering Foundations & HUD Shell
