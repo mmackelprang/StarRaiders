@@ -1,6 +1,6 @@
 # PROJECTPLAN – Star Raiders (Unity, C#)
 
-This plan breaks the Star Raiders clone into iterative phases sized for an AI coding assistant. Use Unity (C#) for all UI and gameplay systems. Always cross-reference the provided documents for fidelity: `README.md`, `Star_Raiders_PRD.md` (Sections noted per phase), `QUICKSTART_DEVELOPER_GUIDE.md`, `star_raiders_technical_notes.txt`, `star_raiders_visual_mockups.txt`, `star_raiders_visual_reference.txt`, and images in `/images`.
+This plan breaks the Star Raiders clone into iterative phases sized for an AI coding assistant. Use Unity (C#) for all UI and gameplay systems. Always cross-reference the provided documents for fidelity: `README.md`, `Star_Raiders_PRD.md` (Sections noted per phase), `QUICKSTART_DEVELOPER_GUIDE.md`, `star_raiders_technical_notes.txt`, `star_raiders_visual_mockups.txt`, `star_raiders_visual_reference.txt`, and images in `/images`. (README references `TEAM_ROLES_AND_TASKS.md`; if available later, incorporate its role guidance.)
 
 ## Conventions
 - Target: Unity 2022+ LTS, C# 10+, URP (or built-in pipeline if simpler). Use prefab-based UI, ScriptableObjects for data, and Input System package.
@@ -22,7 +22,7 @@ You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Ra
 **Tasks:** Initialize Unity URP project; configure source control ignores; add Input System, TextMeshPro; set base scene and folders (`Scripts`, `Prefabs`, `Scenes`, `ScriptableObjects`, `UI`, `Audio`, `Tests`).  
 **AI Agent Prompt:**  
 ```
-Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPro, set default quality to 60 FPS target, configure Assembly Definitions per feature folder, and create a Bootstrap scene with GameManagers (GameState, Audio, Input). Update README with run instructions if needed. Follow PRD Section 23 (Technical Architecture) and QUICKSTART_DEVELOPER_GUIDE.md Section 9 (Performance Targets).
+Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPro, set default quality to 60 FPS target, configure Assembly Definitions per feature folder, and create a Bootstrap scene with GameManagers (GameState, Audio, Input). Update README with run instructions if needed. Follow PRD Section 23 (Technical Architecture) and the QUICKSTART_DEVELOPER_GUIDE.md Performance Targets section.
 ```
 
 ## Phase 2 – Core Game Loop & State Management
@@ -38,7 +38,7 @@ Implement GameStateManager in Unity per PRD Sections 6 and 23. States: Title, Pl
 **Tasks:** Configure Unity Input System actions (movement, fire, shields, computer, view switches, speed 0-9, hyperspace, long-range scan). Support keyboard/gamepad; allow remapping.  
 **AI Agent Prompt:**  
 ```
-Define Input Actions asset for controls in QUICKSTART Section 3 & 19 (PRD). Map keys (0-9, F, A, G, L, H, T, S, Fire, Joystick/Arrows). Expose an InputController that raises events with normalized values. Include UI for remapping (optional toggle). Provide tests for action bindings (EditMode).
+Define Input Actions asset using controls listed in QUICKSTART_DEVELOPER_GUIDE.md Feature Checklist/Controls and PRD Section 19 (Controls and Input). Map keys (0-9, F, A, G, L, H, T, S, Fire, Joystick/Arrows). Expose an InputController that raises events with normalized values. Include UI for remapping (optional toggle). Provide tests for action bindings (EditMode).
 ```
 
 ## Phase 4 – Galaxy Data Model & Persistence
@@ -46,7 +46,7 @@ Define Input Actions asset for controls in QUICKSTART Section 3 & 19 (PRD). Map 
 **Tasks:** ScriptableObject for galaxy config; data structs for sectors, starbases, enemies; utilities for Manhattan distance and threats; seed-based initialization; save/load stubs.  
 **AI Agent Prompt:**  
 ```
-Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART Section 1. Include sector types, player location, starbases, enemies. Implement distance calculations and threat detection (CheckStarbaseThreats from QUICKSTART Section 3 core functions). Add JSON save/load placeholders. Provide EditMode tests for generation and threat rules.
+Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART_DEVELOPER_GUIDE.md Game Statistics/Core Systems overview. Include sector types, player location, starbases, enemies. Implement distance calculations and threat detection (CheckStarbaseThreats noted in the Core Systems overview). Add JSON save/load placeholders. Provide EditMode tests for generation and threat rules.
 ```
 
 ## Phase 5 – Rendering Foundations & HUD Shell
@@ -118,7 +118,7 @@ Build UI screens per PRD Sections 8-9 and star_raiders_visual_mockups.txt. Imple
 **Tasks:** Audio manager, engine hum by velocity, torpedo fire, explosions, shield toggle, hyperspace, alerts, UI sounds; volume/mix settings.  
 **AI Agent Prompt:**  
 ```
-Implement AudioSystem per technical_notes Section 16 and PRD Section 20. Add audio events for engine (speed-based pitch), torpedo, explosions, shields, hyperspace, alert tones, and UI clicks. Provide mixer groups and volume controls. Smoke test with simple audio clips.
+Implement AudioSystem per technical_notes "Audio System Architecture" section and PRD Section 20. Add audio events for engine (speed-based pitch), torpedo, explosions, shields, hyperspace, alert tones, and UI clicks. Provide mixer groups and volume controls. Smoke test with simple audio clips.
 ```
 
 ## Phase 14 – Scoring, Ranking, and Session Flow
