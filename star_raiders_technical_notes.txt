@@ -1,0 +1,3808 @@
+================================================================================
+STAR RAIDERS - TECHNICAL IMPLEMENTATION NOTES
+================================================================================
+
+Version: 1.0
+Date: December 17, 2025
+Purpose: Technical architecture, algorithms, and implementation guidelines
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. System Architecture Overview
+2. Game Engine Design
+3. State Management System
+4. Galaxy Generation Algorithm
+5. Enemy AI System
+6. Pathfinding and Movement
+7. Combat System Implementation
+8. 3D Rendering Pipeline
+9. Collision Detection System
+10. Physics and Movement
+11. Energy Management System
+12. PESCLR Damage System
+13. Hyperspace Navigation
+14. Starbase System
+15. Input Handling System
+16. Audio System Architecture
+17. Save/Load System
+18. Performance Optimization
+19. Memory Management
+20. Network Architecture (Future)
+21. Testing Framework
+22. Build and Deployment
+23. Code Organization
+24. API Reference
+25. Debugging Tools
+
+================================================================================
+1. SYSTEM ARCHITECTURE OVERVIEW
+================================================================================
+
+HIGH-LEVEL ARCHITECTURE:
+
+┌─────────────────────────────────────────────────────────────┐
+│                      STAR RAIDERS                           │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │   INPUT      │  │    GAME      │  │   RENDER     │     │
+│  │   SYSTEM     │→→│    LOOP      │→→│   SYSTEM     │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│         ↓                 ↓                  ↓             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │   STATE      │  │   PHYSICS    │  │    AUDIO     │     │
+│  │   MANAGER    │  │   SYSTEM     │  │   SYSTEM     │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│         ↓                 ↓                  ↓             │
+│  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐     │
+│  │   GALAXY     │  │   ENEMY AI   │  │     UI       │     │
+│  │   SYSTEM     │  │   SYSTEM     │  │   SYSTEM     │     │
+│  └──────────────┘  └──────────────┘  └──────────────┘     │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+
+CORE SYSTEMS:
+
+1. Game Loop (60 FPS)
+   - Input processing
+   - State updates
+   - Physics simulation
+   - AI processing
+   - Rendering
+   - Audio playback
+
+2. State Manager
+   - Current game state (Title, Playing, Paused, GameOver)
+   - State transitions
+   - State persistence
+
+3. Galaxy System
+   - 256-sector grid
+   - Enemy positions
+   - Starbase locations
+   - Player position
+
+4. Combat System
+   - Torpedo firing
+   - Hit detection
+   - Damage calculation
+   - Lock indicators
+
+5. Rendering System
+   - 3D projection
+   - Sprite rendering
+   - Particle effects
+   - HUD rendering
+
+TECHNOLOGY STACK RECOMMENDATIONS:
+
+Option A - Unity (C#):
+✓ Excellent 2D/3D support
+✓ Large asset store
+✓ Cross-platform deployment
+✓ Good tooling
+✗ Licensing costs
+✗ Larger build sizes
+
+Option B - Godot (GDScript/C#):
+✓ Free and open source
+✓ Lightweight
+✓ Good 2D support
+✓ Easy to learn
+✗ Smaller community
+✗ Fewer learning resources
+
+Option C - Custom Engine (C++/SDL2):
+✓ Maximum control
+✓ Optimal performance
+✓ No licensing issues
+✓ Lightweight builds
+✗ More development time
+✗ Must build everything
+
+Option D - Web (HTML5/JavaScript):
+✓ No installation required
+✓ Cross-platform (browsers)
+✓ Easy distribution
+✓ Good tooling (Canvas/WebGL)
+✗ Performance limitations
+✗ Browser compatibility issues
+
+RECOMMENDED: Unity or Godot for rapid development, Custom engine for maximum performance
+
+================================================================================
+2. GAME ENGINE DESIGN
+================================================================================
+
+MAIN GAME LOOP:
+
+Pseudocode:
+
+function GameLoop():
+    deltaTime = 0
+    lastFrameTime = getCurrentTime()
+    targetFrameTime = 1000 / 60 // 60 FPS = 16.67ms
+
+while gameRunning:
+    currentTime = getCurrentTime()
+    deltaTime = currentTime - lastFrameTime
+    lastFrameTime = currentTime
+    
+    // Process input
+    ProcessInput()
+    
+    // Update game state
+    UpdateGame(deltaTime)
+    
+    // Render frame
+    RenderFrame()
+    
+    // Play audio
+    UpdateAudio()
+    
+    // Frame rate limiting
+    frameTime = getCurrentTime() - currentTime
+    if frameTime < targetFrameTime:
+        sleep(targetFrameTime - frameTime)
+
+
+FIXED TIME STEP (Alternative):
+
+For deterministic physics and gameplay:
+function GameLoopFixedTimeStep():
+    accumulator = 0
+    fixedDeltaTime = 1.0 / 60.0 // 16.67ms
+    currentTime = getCurrentTime()
+
+while gameRunning:
+    newTime = getCurrentTime()
+    frameTime = newTime - currentTime
+    currentTime = newTime
+    
+    accumulator += frameTime
+    
+    // Process input
+    ProcessInput()
+    
+    // Fixed update (may run multiple times per frame)
+    while accumulator >= fixedDeltaTime:
+        UpdateGame(fixedDeltaTime)
+        accumulator -= fixedDeltaTime
+    
+    // Render (interpolated)
+    alpha = accumulator / fixedDeltaTime
+    RenderFrame(alpha)
+
+
+STATE MACHINE:
+
+Game States:
+- TITLE_SCREEN
+- DIFFICULTY_SELECT
+- PLAYING
+- PAUSED
+- GALACTIC_CHART
+- HYPERSPACE
+- DOCKING
+- GAME_OVER
+- RANKING
+
+State Manager:
+class StateManager:
+    currentState = null
+    states = {}
+
+function RegisterState(name, state):
+    states[name] = state
+
+function ChangeState(newStateName):
+    if currentState:
+        currentState.OnExit()
+    
+    currentState = states[newStateName]
+    currentState.OnEnter()
+
+function Update(deltaTime):
+    if currentState:
+        currentState.Update(deltaTime)
+
+function Render():
+    if currentState:
+        currentState.Render()
+
+State Interface:
+    interface GameState:
+        function OnEnter()
+        function OnExit()
+        function Update(deltaTime)
+        function Render()
+        function HandleInput(input)
+
+Example State Implementation:
+    class PlayingState implements GameState:
+        function OnEnter():
+            // Initialize playing state
+            InitializePlayer()
+            LoadCurrentSector()
+
+function OnExit():
+    // Clean up
+    SaveGameState()
+
+function Update(deltaTime):
+    UpdatePlayer(deltaTime)
+    UpdateEnemies(deltaTime)
+    UpdatePhysics(deltaTime)
+    CheckCollisions()
+    UpdateEnergy(deltaTime)
+
+function Render():
+    RenderStarfield()
+    RenderEnemies()
+    RenderPlayer()
+    RenderTorpedoes()
+    RenderHUD()
+
+function HandleInput(input):
+    if input.key == 'G':
+        StateManager.ChangeState(GALACTIC_CHART)
+    else if input.key == 'H':
+        StateManager.ChangeState(HYPERSPACE)
+    // ... handle other inputs
+
+================================================================================
+3. STATE MANAGEMENT SYSTEM
+================================================================================
+
+GAME STATE DATA STRUCTURE:
+class GameState:
+// Player Data
+playerPosition = {x: 0, y: 0, z: 0}
+playerVelocity = 0
+playerEnergy = 7000
+playerKills = 0
+playerSector = {x: 8, y: 8}
+
+// Ship Systems (PESCLR)
+systems = {
+    photon: OPERATIONAL,
+    engines: OPERATIONAL,
+    shields: OPERATIONAL,
+    computer: OPERATIONAL,
+    longRange: OPERATIONAL,
+    radio: OPERATIONAL
+}
+
+// Shields and Computer
+shieldsActive = false
+computerActive = false
+
+// Galaxy Data
+galaxy = Array  // 256 sectors[1]
+starbases = []  // Array of starbase positions
+enemies = []    // Array of enemy squadrons
+
+// Difficulty
+difficultyLevel = NOVICE  // NOVICE, PILOT, WARRIOR, COMMANDER
+
+// Time
+missionTime = 0  // In centons
+
+// Scoring
+score = 0
+rank = ""
+
+SERIALIZATION (Save/Load):
+function SerializeGameState():
+data = {
+version: "1.0",
+player: {
+position: playerPosition,
+velocity: playerVelocity,
+energy: playerEnergy,
+kills: playerKills,
+sector: playerSector
+},
+systems: systems,
+shieldsActive: shieldsActive,
+computerActive: computerActive,
+galaxy: SerializeGalaxy(),
+starbases: starbases,
+enemies: SerializeEnemies(),
+difficulty: difficultyLevel,
+missionTime: missionTime,
+score: score
+}
+return JSON.stringify(data)
+
+function DeserializeGameState(jsonString):
+data = JSON.parse(jsonString)
+// Validate version
+if data.version != "1.0":
+    throw Error("Incompatible save version")
+
+// Restore player data
+playerPosition = data.player.position
+playerVelocity = data.player.velocity
+playerEnergy = data.player.energy
+playerKills = data.player.kills
+playerSector = data.player.sector
+
+// Restore systems
+systems = data.systems
+shieldsActive = data.shieldsActive
+computerActive = data.computerActive
+
+// Restore galaxy
+DeserializeGalaxy(data.galaxy)
+starbases = data.starbases
+DeserializeEnemies(data.enemies)
+
+// Restore game state
+difficultyLevel = data.difficulty
+missionTime = data.missionTime
+score = data.score
+
+
+================================================================================
+4. GALAXY GENERATION ALGORITHM
+================================================================================
+
+GALAXY INITIALIZATION:
+function InitializeGalaxy(difficulty):
+    // Create 16×16 grid
+    galaxy = Array​
+
+// Initialize all sectors as empty
+for x in 0 to 15:
+    for y in 0 to 15:
+        galaxy[x][y] = {
+            type: EMPTY,
+            enemies: [],
+            starbase: null
+        }
+
+// Place starbases
+starbaseCount = GetStarbaseCount(difficulty)
+PlaceStarbases(starbaseCount)
+
+// Place enemies
+enemyCount = GetEnemyCount(difficulty)
+PlaceEnemies(enemyCount)
+
+// Set player starting position
+playerSector = FindEmptySector()
+
+return galaxy
+
+function GetStarbaseCount(difficulty):
+switch difficulty:
+case NOVICE: return 4
+case PILOT: return RandomInt(3, 4)
+case WARRIOR: return RandomInt(2, 3)
+case COMMANDER: return 2
+
+function GetEnemyCount(difficulty):
+switch difficulty:
+case NOVICE: return RandomInt(10, 12)
+case PILOT: return RandomInt(15, 18)
+case WARRIOR: return RandomInt(20, 24)
+case COMMANDER: return RandomInt(25, 30)
+
+function PlaceStarbases(count):
+starbases = []
+minDistance = 3 // Minimum sectors apa
+
+for i in 0 to count-1:
+    placed = false
+    attempts = 0
+    
+    while not placed and attempts < 100:
+        x = RandomInt(0, 15)
+        y = RandomInt(0, 15)
+        
+        // Check if far enough from other starbases
+        if IsValidStarbasePosition(x, y, starbases, minDistance):
+            galaxy[x][y].starbase = CreateStarbase()
+            starbases.append({x: x, y: y})
+            placed = true
+        
+        attempts++
+    
+    if not placed:
+        // Fallback: place anywhere empty
+        {x, y} = FindEmptySector()
+        galaxy[x][y].starbase = CreateStarbase()
+        starbases.append({x: x, y: y})
+
+return starbases
+
+function IsValidStarbasePosition(x, y, existingBases, minDistance):
+// Check if sector is empty
+if galaxy[x][y].type != EMPTY:
+return false
+
+// Check distance from existing starbases
+for base in existingBases:
+    distance = ManhattanDistance(x, y, base.x, base.y)
+    if distance < minDistance:
+        return false
+
+return true
+
+function PlaceEnemies(count):
+// Create 2-4 spawn clusters
+clusterCount = RandomInt(2, 4)
+enemiesPerCluster = count / clusterCount
+
+for i in 0 to clusterCount-1:
+    // Choose cluster center
+    centerX = RandomInt(2, 13)
+    centerY = RandomInt(2, 13)
+    
+    // Make sure not near starbases
+    nearestStarbase = FindNearestStarbase(centerX, centerY)
+    if ManhattanDistance(centerX, centerY, nearestStarbase.x, nearestStarbase.y) < 4:
+        // Too close, skip this cluster
+        continue
+    
+    // Place enemies around cluster center
+    for j in 0 to enemiesPerCluster:
+        offsetX = RandomInt(-2, 2)
+        offsetY = RandomInt(-2, 2)
+        x = Clamp(centerX + offsetX, 0, 15)
+        y = Clamp(centerY + offsetY, 0, 15)
+        
+        // Create enemy squadron
+        squadron = CreateEnemySquadron()
+        galaxy[x][y].enemies.append(squadron)
+
+function CreateEnemySquadron():
+// 1-3 ships per squadron
+shipCount = RandomInt(1, 3)
+squadron = {
+ships: [],
+formation: RandomFormation(),
+target: null,
+speed: GetFormationSpeed(formation)
+}
+
+for i in 0 to shipCount-1:
+    shipType = RandomEnemyType()
+    ship = CreateEnemy(shipType)
+    squadron.ships.append(ship)
+
+return squadron
+
+function RandomEnemyType():
+roll = Random(0, 100)
+if roll < 60:
+return FIGHTER // 60% fighters
+else if roll < 90:
+return CRUISER // 30% cruisers
+else:
+return BASESTAR // 10% basestars
+
+function RandomFormation():
+    formations = [LINE, V_FORMATION, CLUSTER]
+    return formations[RandomInt(0, 2)]
+
+function GetFormationSpeed(formation):
+    switch formation:
+        case LINE: return 1.0  // 1 sector per move
+        case V_FORMATION: return 1.5  // Faster (fighter-heavy)
+        case CLUSTER: return 0.5  // Slower (basestar + escorts)
+
+function ManhattanDistance(x1, y1, x2, y2):
+    return abs(x1 - x2) + abs(y1 - y2)
+
+function FindEmptySector():
+    attempts = 0
+    while attempts < 1000:
+        x = RandomInt(0, 15)
+        y = RandomInt(0, 15)
+        
+        if galaxy[x][y].type == EMPTY and 
+           galaxy[x][y].enemies.length == 0 and
+           galaxy[x][y].starbase == null:
+            return {x: x, y: y}
+        
+        attempts++
+    
+    // Fallback: return center
+    return {x: 8, y: 8}
+
+================================================================================
+5. ENEMY AI SYSTEM
+ENEMY AI ARCHITECTURE:
+class EnemyAI:
+    // Strategic AI (Galaxy level)
+    function UpdateStrategic(deltaTime):
+        for each squadron in galaxy:
+            if squadron.moveTimer >= squadron.moveInterval:
+                StrategicMove(squadron)
+                squadron.moveTimer = 0
+            else:
+                squadron.moveTimer += deltaTime
+    
+    // Tactical AI (Sector level)
+    function UpdateTactical(sector, deltaTime):
+        for each squadron in sector.enemies:
+            for each ship in squadron.ships:
+                TacticalBehavior(ship, deltaTime)
+
+STRATEGIC AI (Galaxy Movement):
+function StrategicMove(squadron):
+    // Find target (nearest vulnerable starbase)
+    target = FindTargetStarbase()
+    
+    if target == null:
+        // No starbases left, patrol randomly
+        PatrolRandomly(squadron)
+        return
+    
+    // Calculate path toward target
+    currentPos = squadron.position
+    nextPos = GetNextSectorToward(currentPos, target)
+    
+    // Move squadron
+    MoveSquadronToSector(squadron, nextPos)
+    
+    // Check if surrounded starbase
+    CheckStarbaseSurround(target)
+
+function FindTargetStarbase():
+    // Find nearest starbase that isn't destroyed
+    nearestBase = null
+    shortestDistance = 999
+    
+    for base in starbases:
+        if not base.destroyed:
+            distance = ManhattanDistance(
+                squadron.position.x,
+                squadron.position.y,
+                base.x,
+                base.y
+            )
+            
+            if distance < shortestDistance:
+                shortestDistance = distance
+                nearestBase = base
+    
+    return nearestBase
+
+function GetNextSectorToward(current, target):
+    // Simple pathfinding (move one step closer)
+    dx = target.x - current.x
+    dy = target.y - current.y
+    
+    // Normalize to -1, 0, or 1
+    stepX = Clamp(dx, -1, 1)
+    stepY = Clamp(dy, -1, 1)
+    
+    // Move horizontally or vertically (not diagonal)
+    if abs(dx) > abs(dy):
+        return {x: current.x + stepX, y: current.y}
+    else:
+        return {x: current.x, y: current.y + stepY}
+
+function CheckStarbaseSurround(starbase):
+    // Count enemy squadrons in adjacent sectors
+    adjacentEnemies = 0
+    
+    offsets = [
+        {x: -1, y: 0}, {x: 1, y: 0},
+        {x: 0, y: -1}, {x: 0, y: 1}
+    ]
+    
+    for offset in offsets:
+        checkX = starbase.x + offset.x
+        checkY = starbase.y + offset.y
+        
+        if IsValidSector(checkX, checkY):
+            if galaxy[checkX][checkY].enemies.length > 0:
+                adjacentEnemies++
+    
+    if adjacentEnemies >= 2:
+        // Starbase is surrounded!
+        StartStarbaseAttack(starbase)
+
+function StartStarbaseAttack(starbase):
+    if not starbase.underAttack:
+        starbase.underAttack = true
+        starbase.attackTimer = 100  // 100 centons countdown
+        
+        // Send alert (if radio operational)
+        if systems.radio != DESTROYED:
+            SendAlert("STARBASE AT SECTOR " + starbase.x + "," + starbase.y + " UNDER ATTACK!")
+
+TACTICAL AI (Combat Behavior):
+function TacticalBehavior(ship, deltaTime):
+    // Get behavior based on ship type
+    switch ship.type:
+        case FIGHTER:
+            FighterBehavior(ship, deltaTime)
+        case CRUISER:
+            CruiserBehavior(ship, deltaTime)
+        case BASESTAR:
+            BasestarBehavior(ship, deltaTime)
+
+// FIGHTER AI - Aggressive
+function FighterBehavior(ship, deltaTime):
+    playerDist = DistanceToPlayer(ship)
+    
+    if playerDist > 80:
+        // Approach player aggressively
+        MoveToward(ship, playerPosition, ship.speed * deltaTime)
+    else if playerDist > 30:
+        // In combat range, circle and fire
+        CirclePlayer(ship, deltaTime)
+        if CanFire(ship):
+            FireAtPlayer(ship)
+    else:
+        // Too close, back off slightly then fire
+        MoveAway(ship, playerPosition, ship.speed * 0.5 * deltaTime)
+        if CanFire(ship):
+            FireAtPlayer(ship)
+
+// CRUISER AI - Defensive
+function CruiserBehavior(ship, deltaTime):
+    playerDist = DistanceToPlayer(ship)
+    
+    if not ship.provoked:
+        // Patrol, don't attack unless attacked
+        Patrol(ship, deltaTime)
+        
+        // Check if player fired at us
+        if WasHitByPlayer(ship):
+            ship.provoked = true
+    else:
+        // Defensive behavior - maintain distance
+        if playerDist < 50:
+            // Back away while firing
+            MoveAway(ship, playerPosition, ship.speed * deltaTime)
+            if CanFire(ship):
+                FireAtPlayer(ship)
+        else if playerDist > 70:
+            // Approach to optimal range
+            MoveToward(ship, playerPosition, ship.speed * 0.5 * deltaTime)
+        else:
+            // Optimal range, hold position and fire
+            if CanFire(ship):
+                FireAtPlayer(ship)
+
+// BASESTAR AI - Heavy Firepower
+function BasestarBehavior(ship, deltaTime):
+    playerDist = DistanceToPlayer(ship)
+    
+    // Slow approach
+    if playerDist > 60:
+        MoveToward(ship, playerPosition, ship.speed * deltaTime)
+    else:
+        // Stop and fire continuously
+        if CanFire(ship):
+            FireAtPlayer(ship)
+
+function CirclePlayer(ship, deltaTime):
+    // Calculate circular motion around player
+    angle = ship.circleAngle
+    radius = 50  // metrons
+    
+    targetX = playerPosition.x + cos(angle) * radius
+    targetY = playerPosition.y + sin(angle) * radius
+    
+    MoveToward(ship, {x: targetX, y: targetY}, ship.speed * deltaTime)
+    
+    // Increment angle for next frame
+    ship.circleAngle += deltaTime * 0.5  // Adjust speed of circling
+
+function CanFire(ship):
+    // Check fire cooldown
+    if ship.fireCooldown > 0:
+        return false
+    
+    // Check if roughly aimed at player
+    angleToPlayer = AngleToTarget(ship.position, playerPosition)
+    shipFacing = ship.rotation
+    
+    angleDiff = abs(angleToPlayer - shipFacing)
+    
+    // Allow 30 degree firing cone
+    if angleDiff < 30:
+        return true
+    
+    return false
+
+function FireAtPlayer(ship):
+    // Create enemy torpedo
+    torpedo = {
+        position: ship.position,
+        velocity: CalculateVelocityToward(ship.position, playerPosition, 50),
+        owner: ship,
+        damage: GetShipDamage(ship.type)
+    }
+    
+    AddTorpedo(torpedo)
+    
+    // Set cooldown
+    ship.fireCooldown = GetFireRate(ship.type)
+    
+    // Play sound
+    PlaySound("enemy_fire")
+
+function GetFireRate(shipType):
+    switch shipType:
+        case FIGHTER: return 0.8  // Fast fire rate
+        case CRUISER: return 1.5  // Moderate
+        case BASESTAR: return 0.5  // Very fast (heavy firepower)
+
+function GetShipDamage(shipType):
+    // All do same damage, frequency differs
+    return 1  // 1 system damage per hit
+
+DIFFICULTY SCALING:
+function ApplyDifficultyScaling(ship):
+    switch difficultyLevel:
+        case NOVICE:
+            ship.speed *= 0.5
+            ship.fireRate *= 1.5  // Slower fire
+            ship.accuracy *= 0.7  // Less accurate
+        
+        case PILOT:
+            ship.speed *= 0.75
+            ship.fireRate *= 1.2
+            ship.accuracy *= 0.85
+        
+        case WARRIOR:
+            ship.speed *= 1.0
+            ship.fireRate *= 1.0
+            ship.accuracy *= 1.0
+        
+        case COMMANDER:
+            ship.speed *= 1.25
+            ship.fireRate *= 0.8  // Faster fire
+            ship.accuracy *= 1.2  // More accurate
+
+================================================================================
+6. PATHFINDING AND MOVEMENT
+SECTOR-TO-SECTOR PATHFINDING:
+function FindPathToStarbase(startX, startY, targetX, targetY):
+    // Simple A* pathfinding for galaxy grid
+    
+    openSet = PriorityQueue()
+    closedSet = Set()
+    
+    startNode = {
+        x: startX,
+        y: startY,
+        g: 0,  // Cost from start
+        h: ManhattanDistance(startX, startY, targetX, targetY),  // Heuristic
+        f: 0,  // Total cost
+        parent: null
+    }
+    startNode.f = startNode.g + startNode.h
+    
+    openSet.push(startNode)
+    
+    while not openSet.empty():
+        current = openSet.pop()  // Node with lowest f
+        
+        if current.x == targetX and current.y == targetY:
+            // Found path!
+            return ReconstructPath(current)
+        
+        closedSet.add(current)
+        
+        // Check neighbors (4-directional)
+        neighbors = GetNeighbors(current.x, current.y)
+        
+        for neighbor in neighbors:
+            if neighbor in closedSet:
+                continue
+            
+            tentativeG = current.g + 1  // Cost to move one sector
+            
+            if neighbor not in openSet:
+                openSet.push(neighbor)
+            else if tentativeG >= neighbor.g:
+                continue  // Not a better path
+            
+            // This is the best path so far
+            neighbor.parent = current
+            neighbor.g = tentativeG
+            neighbor.h = ManhattanDistance(neighbor.x, neighbor.y, targetX, targetY)
+            neighbor.f = neighbor.g + neighbor.h
+    
+    // No path found
+    return null
+
+function ReconstructPath(node):
+    path = []
+    current = node
+    
+    while current != null:
+        path.prepend({x: current.x, y: current.y})
+        current = current.parent
+    
+    return path
+
+function GetNeighbors(x, y):
+    neighbors = []
+    offsets = [
+        {x: -1, y: 0}, {x: 1, y: 0},
+        {x: 0, y: -1}, {x: 0, y: 1}
+    ]
+    
+    for offset in offsets:
+        newX = x + offset.x
+        newY = y + offset.y
+        
+        if IsValidSector(newX, newY):
+            neighbors.append({x: newX, y: newY})
+    
+    return neighbors
+
+SMOOTH MOVEMENT (Within Sector):
+function UpdateShipMovement(ship, deltaTime):
+    // Current position
+    pos = ship.position
+    
+    // Target position (where AI wants to go)
+    target = ship.targetPosition
+    
+    // Calculate direction vector
+    dx = target.x - pos.x
+    dy = target.y - pos.y
+    dz = target.z - pos.z
+    
+    distance = sqrt(dx*dx + dy*dy + dz*dz)
+    
+    if distance < 1.0:
+        // Close enough, consider arrived
+        ship.position = target
+        return
+    
+    // Normalize direction
+    dirX = dx / distance
+    dirY = dy / distance
+    dirZ = dz / distance
+    
+    // Move toward target
+    moveSpeed = ship.speed * deltaTime
+    
+    ship.position.x += dirX * moveSpeed
+    ship.position.y += dirY * moveSpeed
+    ship.position.z += dirZ * moveSpeed
+    
+    // Update rotation to face direction
+    ship.rotation = atan2(dirY, dirX)
+
+COLLISION AVOIDANCE:
+function AvoidCollisions(ship, deltaTime):
+    // Check nearby ships
+    nearbyShips = GetShipsInRadius(ship.position, 20)  // 20 metron radius
+    
+    avoidanceVector = {x: 0, y: 0, z: 0}
+    
+    for other in nearbyShips:
+        if other == ship:
+            continue
+        
+        // Calculate repulsion vector
+        dx = ship.position.x - other.position.x
+        dy = ship.position.y - other.position.y
+        dz = ship.position.z - other.position.z
+        
+        distance = sqrt(dx*dx + dy*dy + dz*dz)
+        
+        if distance < 10:  // Too close!
+            // Strong repulsion
+            strength = (10 - distance) / 10
+            avoidanceVector.x += (dx / distance) * strength
+            avoidanceVector.y += (dy / distance) * strength
+            avoidanceVector.z += (dz / distance) * strength
+    
+    // Apply avoidance to target position
+    ship.targetPosition.x += avoidanceVector.x * deltaTime * 5
+    ship.targetPosition.y += avoidanceVector.y * deltaTime * 5
+    ship.targetPosition.z += avoidanceVector.z * deltaTime * 5
+
+================================================================================
+7. COMBAT SYSTEM IMPLEMENTATION
+TORPEDO FIRING:
+class Torpedo:
+    position = {x: 0, y: 0, z: 0}
+    velocity = {x: 0, y: 0, z: 0}
+    owner = null  // PLAYER or enemy ship reference
+    lifetime = 3.0  // seconds before despawn
+    damage = 1
+
+function FireTorpedo(position, direction, owner):
+    // Check energy (player only)
+    if owner == PLAYER:
+        if playerEnergy < 5:
+            PlaySound("error")
+            return null
+        
+        playerEnergy -= 5
+        
+        // Check if photon torpedoes damaged
+        if systems.photon == DESTROYED:
+            ShowMessage("PHOTON TORPEDOES DESTROYED")
+            return null
+        
+        if systems.photon == DAMAGED:
+            // 50% chance of misfire
+            if Random(0, 1) < 0.5:
+                // Torpedo veers off course
+                direction = AddRandomOffset(direction, 20)  // degrees
+    
+    // Create torpedo
+    torpedo = new Torpedo()
+    torpedo.position = position
+    torpedo.velocity = {
+        x: direction.x * 50,  // 50 metrons/second
+        y: direction.y * 50,
+        z: direction.z * 50
+    }
+    torpedo.owner = owner
+    torpedo.lifetime = 3.0
+    
+    if owner == PLAYER:
+        torpedo.damage = systems.photon == DAMAGED ? 0.8 : 1.0
+    else:
+        torpedo.damage = 1.0
+    
+    activeTorpedoes.append(torpedo)
+    
+    // Play sound
+    PlaySound("torpedo_fire")
+    
+    // Visual effect (muzzle flash)
+    CreateMuzzleFlash(position)
+    
+    return torpedo
+
+function UpdateTorpedoes(deltaTime):
+    for torpedo in activeTorpedoes:
+        // Update position
+        torpedo.position.x += torpedo.velocity.x * deltaTime
+        torpedo.position.y += torpedo.velocity.y * deltaTime
+        torpedo.position.z += torpedo.velocity.z * deltaTime
+        
+        // Update lifetime
+        torpedo.lifetime -= deltaTime
+        
+        // Check for collisions
+        hit = CheckTorpedoCollision(torpedo)
+        
+        if hit:
+            HandleTorpedoHit(torpedo, hit)
+            RemoveTorpedo(torpedo)
+        else if torpedo.lifetime <= 0:
+            // Despawn (miss)
+            RemoveTorpedo(torpedo)
+        else if IsOutOfBounds(torpedo.position):
+            // Out of sector
+            RemoveTorpedo(torpedo)
+
+COLLISION DETECTION:
+function CheckTorpedoCollision(torpedo):
+    if torpedo.owner == PLAYER:
+        // Check against enemies
+        for enemy in currentSectorEnemies:
+            if CheckSphereCollision(torpedo.position, 2, enemy.position, enemy.radius):
+                return enemy
+    else:
+        // Check against player
+        if CheckSphereCollision(torpedo.position, 2, playerPosition, 5):
+            return PLAYER
+    
+    return null
+
+function CheckSphereCollision(pos1, radius1, pos2, radius2):
+    dx = pos2.x - pos1.x
+    dy = pos2.y - pos1.y
+    dz = pos2.z - pos1.z
+    
+    distanceSquared = dx*dx + dy*dy + dz*dz
+    radiusSum = radius1 + radius2
+    
+    return distanceSquared <= radiusSum * radiusSum
+
+function HandleTorpedoHit(torpedo, target):
+    if target == PLAYER:
+        // Player was hit
+        HandlePlayerDamage(torpedo.damage)
+        
+        // Visual/audio feedback
+        ScreenFlash(RED, 0.2)
+        ScreenShake(2)
+        PlaySound("player_hit")
+    else:
+        // Enemy was hit
+        target.health -= torpedo.damage
+        
+        if target.health <= 0:
+            DestroyEnemy(target)
+            playerKills++
+            score += GetEnemyScore(target.type)
+        else:
+            // Damaged but not destroyed
+            target.flashTimer = 0.1  // Flash white
+            PlaySound("enemy_hit")
+        
+        // Create explosion effect
+        CreateExplosion(target.position, target.type)
+
+LOCK INDICATORS:
+function CalculateLockIndicators():
+    if systems.computer == DESTROYED:
+        return {
+            horizontalLock: false,
+            verticalLock: false,
+            rangeLock: false
+        }
+    
+    target = GetCurrentTarget()
+    
+    if target == null:
+        return {
+            horizontalLock: false,
+            verticalLock: false,
+            rangeLock: false
+        }
+    
+    // Calculate relative position
+    dx = target.position.x - playerPosition.x
+    dy = target.position.y - playerPosition.y
+    dz = target.position.z - playerPosition.z
+    
+    // Calculate angles
+    horizontalAngle = atan2(dy, dx) - playerRotation.yaw
+    verticalAngle = atan2(dz, sqrt(dx*dx + dy*dy)) - playerRotation.pitch
+    
+    // Calculate distance
+    distance = sqrt(dx*dx + dy*dy + dz*dz)
+    
+    // Determine locks (tolerance based on damage)
+    tolerance = systems.computer == DAMAGED ? 15 : 10  // degrees
+    
+    horizontalLock = abs(horizontalAngle) < tolerance
+    verticalLock = abs(verticalAngle) < tolerance
+    rangeLock = distance >= 30 and distance <= 70  // Optimal range
+    
+    return {
+        horizontalLock: horizontalLock,
+        verticalLock: verticalLock,
+        rangeLock: rangeLock,
+        range: distance
+    }
+
+function GetCurrentTarget():
+    if not computerActive:
+        return null
+    
+    // Find nearest enemy in front of player
+    nearestEnemy = null
+    nearestDistance = 999
+    
+    for enemy in currentSectorEnemies:
+        // Check if in front of player (cone)
+        angle = AngleToTarget(playerPosition, enemy.position)
+        facingAngle = playerRotation.yaw
+        
+        angleDiff = abs(angle - facingAngle)
+        
+        if angleDiff < 60:  // 60 degree cone
+            distance = Distance(playerPosition, enemy.position)
+            
+            if distance < nearestDistance:
+                nearestDistance = distance
+                nearestEnemy = enemy
+    
+    return nearestEnemy
+
+================================================================================
+8. 3D RENDERING PIPELINE
+3D TO 2D PROJECTION:
+class Camera:
+    position = {x: 0, y: 0, z: 0}
+    rotation = {pitch: 0, yaw: 0, roll: 0}
+    fov = 60  // Field of view in degrees
+    nearPlane = 1
+    farPlane = 200
+
+function Project3DTo2D(worldPos):
+    // Transform to camera space
+    cameraPos = WorldToCameraSpace(worldPos)
+    
+    // Check if behind camera
+    if cameraPos.z <= camera.nearPlane:
+        return null  // Don't render
+    
+    // Check if beyond far plane
+    if cameraPos.z >= camera.farPlane:
+        return null
+    
+    // Perspective projection
+    screenX = (cameraPos.x / cameraPos.z) * focalLength + screenWidth / 2
+    screenY = (cameraPos.y / cameraPos.z) * focalLength + screenHeight / 2
+    
+    // Calculate scale based on distance
+    scale = focalLength / cameraPos.z
+    
+    return {
+        x: screenX,
+        y: screenY,
+        scale: scale,
+        depth: cameraPos.z
+    }
+
+function WorldToCameraSpace(worldPos):
+    // Translate to camera origin
+    relative = {
+        x: worldPos.x - camera.position.x,
+        y: worldPos.y - camera.position.y,
+        z: worldPos.z - camera.position.z
+    }
+    
+    // Rotate by camera rotation
+    rotated = RotatePoint(relative, camera.rotation)
+    
+    return rotated
+
+function RotatePoint(point, rotation):
+    // Apply yaw (Y-axis rotation)
+    cosYaw = cos(rotation.yaw)
+    sinYaw = sin(rotation.yaw)
+    
+    x1 = point.x * cosYaw - point.z * sinYaw
+    z1 = point.x * sinYaw + point.z * cosYaw
+    y1 = point.y
+    
+    // Apply pitch (X-axis rotation)
+    cosPitch = cos(rotation.pitch)
+    sinPitch = sin(rotation.pitch)
+    
+    y2 = y1 * cosPitch - z1 * sinPitch
+    z2 = y1 * sinPitch + z1 * cosPitch
+    x2 = x1
+    
+    return {x: x2, y: y2, z: z2}
+
+ENEMY RENDERING:
+function RenderEnemy(enemy):
+    // Project 3D position to 2D screen
+    projected = Project3DTo2D(enemy.position)
+    
+    if projected == null:
+        return  // Off screen or behind camera
+    
+    // Determine sprite size based on distance
+    baseSize = GetEnemySpriteSize(enemy.type)
+    screenSize = baseSize * projected.scale
+    
+    // Clamp size
+    screenSize = Clamp(screenSize, 4, 64)
+    
+    // Get appropriate sprite
+    sprite = GetEnemySprite(enemy.type, screenSize)
+    
+    // Calculate brightness based on distance (optional)
+    brightness = Clamp(1.0 - (projected.depth / 100), 0.5, 1.0)
+    
+    // Render sprite
+    DrawSprite(sprite, projected.x, projected.y, brightness)
+    
+    // Add to depth buffer for sorting
+    depthBuffer.add({
+        depth: projected.depth,
+        renderFunc: () => DrawSprite(sprite, projected.x, projected.y, brightness)
+    })
+
+function GetEnemySpriteSize(type):
+    switch type:
+        case FIGHTER: return 20
+        case CRUISER: return 30
+        case BASESTAR: return 40
+
+function GetEnemySprite(type, size):
+    // Select appropriate sprite based on size
+    if size < 8:
+        return sprites[type + "_04px"]
+    else if size < 16:
+        return sprites[type + "_08px"]
+    else if size < 32:
+        return sprites[type + "_16px"]
+    else if size < 64:
+        return sprites[type + "_32px"]
+    else:
+        return sprites[type + "_64px"]
+
+STARFIELD RENDERING:
+function RenderStarfield():
+    // Render each parallax layer
+    for layer in starfieldLayers:
+        for star in layer.stars:
+            // Calculate position based on camera
+            offsetX = (star.x - camera.position.x) * layer.parallaxFactor
+            offsetY = (star.y - camera.position.y) * layer.parallaxFactor
+            
+            // Wrap around screen
+            screenX = (offsetX + screenWidth) % screenWidth
+            screenY = (offsetY + screenHeight) % screenHeight
+            
+            // Draw star
+            DrawPixel(screenX, screenY, star.color, star.size)
+
+function UpdateStarfield(deltaTime):
+    // Scroll stars based on velocity
+    scrollSpeed = playerVelocity * deltaTime
+    
+    for layer in starfieldLayers:
+        for star in layer.stars:
+            star.x -= scrollSpeed * layer.parallaxFactor * cos(playerRotation.yaw)
+            star.y -= scrollSpeed * layer.parallaxFactor * sin(playerRotation.yaw)
+            
+            // Wrap stars that go off screen
+            if star.x < 0:
+                star.x += screenWidth
+            if star.x >= screenWidth:
+                star.x -= screenWidth
+            if star.y < 0:
+                star.y += screenHeight
+            if star.y >= screenHeight:
+                star.y -= screenHeight
+
+DEPTH SORTING:
+function RenderScene():
+    // Clear depth buffer
+    depthBuffer.clear()
+    
+    // Add all renderable objects to depth buffer
+    for enemy in currentSectorEnemies:
+        RenderEnemy(enemy)  // Adds to depth buffer
+    
+    for torpedo in activeTorpedoes:
+        RenderTorpedo(torpedo)  // Adds to depth buffer
+    
+    for particle in activeParticles:
+        RenderParticle(particle)  // Adds to depth buffer
+    
+    // Sort by depth (far to near)
+    depthBuffer.sort(key: depth, order: DESCENDING)
+    
+    // Render in order
+    for item in depthBuffer:
+        item.renderFunc()
+
+================================================================================
+9. COLLISION DETECTION SYSTEM
+BROAD PHASE (Spatial Partitioning):
+class SpatialGrid:
+    cellSize = 50  // metrons
+    grid = {}  // Dictionary of cell lists
+    
+    function Insert(object):
+        cellX = floor(object.position.x / cellSize)
+        cellY = floor(object.position.y / cellSize)
+        cellZ = floor(object.position.z / cellSize)
+        
+        cellKey = cellX + "," + cellY + "," + cellZ
+        
+        if cellKey not in grid:
+            grid[cellKey] = []
+        
+        grid[cellKey].append(object)
+    
+    function GetNearby(position, radius):
+        // Check all cells within radius
+        nearby = []
+        
+        minCellX = floor((position.x - radius) / cellSize)
+        maxCellX = floor((position.x + radius) / cellSize)
+        minCellY = floor((position.y - radius) / cellSize)
+        maxCellY = floor((position.y + radius) / cellSize)
+        minCellZ = floor((position.z - radius) / cellSize)
+        maxCellZ = floor((position.z + radius) / cellSize)
+        
+        for cx in minCellX to maxCellX:
+            for cy in minCellY to maxCellY:
+                for cz in minCellZ to maxCellZ:
+                    cellKey = cx + "," + cy + "," + cz
+                    
+                    if cellKey in grid:
+                        nearby.extend(grid[cellKey])
+        
+        return nearby
+    
+    function Clear():
+        grid = {}
+
+NARROW PHASE (Precise Collision):
+function CheckCollisions():
+    // Build spatial grid
+    spatialGrid.Clear()
+    
+    for enemy in currentSectorEnemies:
+        spatialGrid.Insert(enemy)
+    
+    for torpedo in activeTorpedoes:
+        spatialGrid.Insert(torpedo)
+    
+    // Check torpedo vs enemy collisions
+    for torpedo in activeTorpedoes:
+        if torpedo.owner == PLAYER:
+            // Get nearby enemies
+            nearbyEnemies = spatialGrid.GetNearby(torpedo.position, 10)
+            
+            for enemy in nearbyEnemies:
+                if PreciseCollisionCheck(torpedo, enemy):
+                    HandleCollision(torpedo, enemy)
+                    break
+    
+    // Check ship vs ship collisions (rare but catastrophic)
+    for enemy in currentSectorEnemies:
+        if Distance(enemy.position, playerPosition) < 5:
+            HandleShipCollision(enemy)
+
+function PreciseCollisionCheck(torpedo, enemy):
+    // Sphere-sphere collision
+    dx = enemy.position.x - torpedo.position.x
+    dy = enemy.position.y - torpedo.position.y
+    dz = enemy.position.z - torpedo.position.z
+    
+    distanceSquared = dx*dx + dy*dy + dz*dz
+    radiusSum = torpedo.radius + enemy.radius
+    
+    return distanceSquared <= radiusSum * radiusSum
+
+function HandleShipCollision(enemy):
+    // Catastrophic collision
+    playerEnergy -= RandomInt(200, 500)
+    
+    // Damage 2-3 systems
+    systemsToDamage = RandomInt(2, 3)
+    for i in 0 to systemsToDamage:
+        DamageRandomSystem()
+    
+    // Destroy enemy
+    DestroyEnemy(enemy)
+    
+    // Visual feedback
+    ScreenFlash(RED, 0.5)
+    ScreenShake(4)
+    PlaySound("collision")
+    CreateExplosion(enemy.position, LARGE)
+
+================================================================================
+10. PHYSICS AND MOVEMENT
+PLAYER SHIP PHYSICS:
+class PlayerShip:
+    position = {x: 0, y: 0, z: 0}
+    velocity = {x: 0, y: 0, z: 0}
+    rotation = {pitch: 0, yaw: 0, roll: 0}
+    speed = 0  // 0-9 speed setting
+    
+    // Control responsiveness
+    turnRate = 1.5  // radians per second
+    maxTurnRate = 3.0
+
+function UpdatePlayerPhysics(deltaTime):
+    // Convert speed setting to actual velocity
+    actualSpeed = GetSpeedInMetronsPerSecond(speed)
+    
+    // Apply engine damage modifier
+    if systems.engines == DAMAGED:
+        actualSpeed *= 0.6
+    else if systems.engines == DESTROYED:
+        actualSpeed *= 0.3
+    
+    // Calculate velocity vector
+    velocity.x = cos(rotation.yaw) * actualSpeed
+    velocity.y = sin(rotation.yaw) * actualSpeed
+    velocity.z = sin(rotation.pitch) * actualSpeed
+    
+    // Update position
+    position.x += velocity.x * deltaTime
+    position.y += velocity.y * deltaTime
+    position.z += velocity.z * deltaTime
+    
+    // Keep player centered (sector is 100×100×100 metrons)
+    position.x = Clamp(position.x, -50, 50)
+    position.y = Clamp(position.y, -50, 50)
+    position.z = Clamp(position.z, -50, 50)
+
+function GetSpeedInMetronsPerSecond(speedSetting):
+    speedTable = [0, 2, 4, 8, 10, 11, 12, 20, 30, 43]
+    return speedTable[speedSetting]
+
+function UpdatePlayerRotation(input, deltaTime):
+    // Get turn rate (affected by engine damage)
+    turnSpeed = turnRate
+    
+    if systems.engines == DAMAGED:
+        turnSpeed *= 0.6
+    else if systems.engines == DESTROYED:
+        turnSpeed *= 0.3
+    
+    // Apply joystick/arrow key input
+    if input.left:
+        rotation.yaw += turnSpeed * deltaTime
+    if input.right:
+        rotation.yaw -= turnSpeed * deltaTime
+    
+    if input.up:
+        rotation.pitch += turnSpeed * deltaTime
+    if input.down:
+        rotation.pitch -= turnSpeed * deltaTime
+    
+    // Clamp pitch to prevent gimbal lock
+    rotation.pitch = Clamp(rotation.pitch, -PI/2, PI/2)
+    
+    // Normalize yaw to 0-2π
+    if rotation.yaw < 0:
+        rotation.yaw += 2*PI
+    if rotation.yaw >= 2*PI:
+        rotation.yaw -= 2*PI
+
+ENEMY PHYSICS:
+function UpdateEnemyPhysics(enemy, deltaTime):
+    // Simple physics (move toward target)
+    if enemy.targetPosition:
+        // Calculate direction
+        dx = enemy.targetPosition.x - enemy.position.x
+        dy = enemy.targetPosition.y - enemy.position.y
+        dz = enemy.targetPosition.z - enemy.position.z
+        
+        distance = sqrt(dx*dx + dy*dy + dz*dz)
+        
+        if distance > 0.1:
+            // Normalize and apply speed
+            enemy.velocity.x = (dx / distance) * enemy.speed
+            enemy.velocity.y = (dy / distance) * enemy.speed
+            enemy.velocity.z = (dz / distance) * enemy.speed
+        else:
+            // Arrived at target
+            enemy.velocity = {x: 0, y: 0, z: 0}
+    
+    // Update position
+    enemy.position.x += enemy.velocity.x * deltaTime
+    enemy.position.y += enemy.velocity.y * deltaTime
+    enemy.position.z += enemy.velocity.z * deltaTime
+    
+    // Update rotation to face movement direction
+    if enemy.velocity.x != 0 or enemy.velocity.y != 0:
+        enemy.rotation.yaw = atan2(enemy.velocity.y, enemy.velocity.x)
+
+================================================================================
+11. ENERGY MANAGEMENT SYSTEM
+ENERGY CONSUMPTION:
+function UpdateEnergy(deltaTime):
+    energyConsumed = 0
+    
+    // Velocity consumption
+    speedEnergy = GetSpeedEnergyCost(playerVelocity)
+    energyConsumed += speedEnergy * deltaTime
+    
+    // Shield consumption (if active)
+    if shieldsActive and systems.shields != DESTROYED:
+        energyConsumed += 10 * deltaTime
+    
+    // Computer consumption (if active)
+    if computerActive and systems.computer != DESTROYED:
+        energyConsumed += 2 * deltaTime
+    
+    // Apply difficulty multiplier
+    energyConsumed *= GetEnergyMultiplier(difficultyLevel)
+    
+    // Apply engine damage penalty
+    if systems.engines == DAMAGED:
+        energyConsumed *= 1.5
+    else if systems.engines == DESTROYED:
+        energyConsumed *= 2.0
+    
+    // Deduct energy
+    playerEnergy -= energyConsumed
+    
+    // Check for depletion
+    if playerEnergy <= 0:
+        playerEnergy = 0
+        GameOver(ENERGY_DEPLETED)
+    
+    // Warning alerts
+    if playerEnergy < 500 and playerEnergy > 100:
+        // Low energy warning (flashing)
+        energyWarningTimer += deltaTime
+        if energyWarningTimer > 0.5:
+            PlaySound("low_energy_beep")
+            energyWarningTimer = 0
+    
+    else if playerEnergy <= 100:
+        // Critical energy (fast flashing)
+        energyWarningTimer += deltaTime
+        if energyWarningTimer > 0.25:
+            PlaySound("critical_energy_beep")
+            energyWarningTimer = 0
+
+function GetSpeedEnergyCost(speedSetting):
+    // Energy per second for each speed level
+    energyCostTable = [0, 2, 2, 2, 5, 5, 8, 12, 18, 30]
+    return energyCostTable[speedSetting]
+
+function GetEnergyMultiplier(difficulty):
+    switch difficulty:
+        case NOVICE: return 1.0
+        case PILOT: return 1.2
+        case WARRIOR: return 1.5
+        case COMMANDER: return 2.0
+
+function CalculateHyperspaceEnergy(fromSector, toSector):
+    distance = ManhattanDistance(fromSector.x, fromSector.y, toSector.x, toSector.y)
+    baseCost = distance * 100
+    multiplier = GetEnergyMultiplier(difficultyLevel)
+    
+    return baseCost * multiplier
+
+================================================================================
+12. PESCLR DAMAGE SYSTEM
+SYSTEM STATUS TRACKING:
+enum SystemStatus:
+    OPERATIONAL
+    DAMAGED
+    DESTROYED
+
+class ShipSystems:
+    photon = OPERATIONAL      // P
+    engines = OPERATIONAL     // E
+    shields = OPERATIONAL     // S
+    computer = OPERATIONAL    // C
+    longRange = OPERATIONAL   // L
+    radio = OPERATIONAL       // R
+
+function HandlePlayerDamage(torpedoDamage):
+    // Check if shields are active and functional
+    if shieldsActive and systems.shields != DESTROYED:
+        // Calculate shield protection
+        protection = GetShieldProtection(difficultyLevel, systems.shields)
+        
+        if Random(0, 1) > protection:
+            // Damage penetrated shields
+            ApplySystemDamage()
+    else:
+        // No shield protection
+        ApplySystemDamage()
+
+function GetShieldProtection(difficulty, shieldStatus):
+    // Base protection by difficulty
+    baseProtection = 0
+    switch difficulty:
+        case NOVICE: baseProtection = 1.0  // 100% protection
+        case PILOT: baseProtection = 0.5   // 50% protection
+        case WARRIOR: baseProtection = 0.25  // 25% protection
+        case COMMANDER: baseProtection = 0.1  // 10% protection
+    
+    // Reduce if shields damaged
+    if shieldStatus == DAMAGED:
+        baseProtection *= 0.5
+    
+    return baseProtection
+
+function ApplySystemDamage():
+    // 40% chance to damage a system per hit
+    if Random(0, 1) > 0.4:
+        return  // No system damage
+    
+    // Select random system to damage
+    systemsList = ["photon", "engines", "shields", "computer", "longRange", "radio"]
+    randomSystem = systemsList[RandomInt(0, 5)]
+    
+    DamageSystem(randomSystem)
+
+function DamageSystem(systemName):
+    currentStatus = systems[systemName]
+    
+    if currentStatus == OPERATIONAL:
+        // Damage to DAMAGED state
+        systems[systemName] = DAMAGED
+        ShowMessage(systemName.toUpperCase() + " DAMAGED")
+        PlaySound("system_damage")
+        
+        // Visual feedback
+        FlashPESCLRLetter(systemName, YELLOW)
+    
+    else if currentStatus == DAMAGED:
+        // Destroy system
+        systems[systemName] = DESTROYED
+        ShowMessage(systemName.toUpperCase() + " DESTROYED")
+        PlaySound("system_destroyed")
+        
+        // Visual feedback
+        FlashPESCLRLetter(systemName, RED)
+        
+        // Auto-deactivate if shields/computer destroyed
+        if systemName == "shields":
+            shieldsActive = false
+        else if systemName == "computer":
+            computerActive = false
+
+function RepairAllSystems():
+    // Called when docking at starbase
+    systems.photon = OPERATIONAL
+    systems.engines = OPERATIONAL
+    systems.shields = OPERATIONAL
+    systems.computer = OPERATIONAL
+    systems.longRange = OPERATIONAL
+    systems.radio = OPERATIONAL
+    
+    // Restore energy
+    playerEnergy = 7000
+    
+    // Visual/audio feedback
+    PlayRepairAnimation()
+    PlaySound("repair_complete")
+    ShowMessage("ALL SYSTEMS REPAIRED")
+
+SYSTEM EFFECT IMPLEMENTATION:
+function GetSystemEfficiency(systemName):
+    status = systems[systemName]
+    
+    switch status:
+        case OPERATIONAL: return 1.0
+        case DAMAGED: return 0.5
+        case DESTROYED: return 0.0
+
+function ApplySystemEffects():
+    // Photon Torpedoes
+    if systems.photon == DESTROYED:
+        // Cannot fire (handled in FireTorpedo)
+        pass
+    else if systems.photon == DAMAGED:
+        // Reduced fire rate, occasional misfires (handled in FireTorpedo)
+        pass
+    
+    // Engines (affects movement speed and energy - handled in UpdatePlayerPhysics)
+    
+    // Shields (affects damage reduction - handled in HandlePlayerDamage)
+    
+    // Computer
+    if systems.computer == DESTROYED:
+        computerActive = false
+        // No auto-targeting, no range display
+    else if systems.computer == DAMAGED:
+        // Inaccurate range readings
+        // Handled in CalculateLockIndicators
+        pass
+    
+    // Long Range Scanner
+    if systems.longRange == DESTROYED:
+        // Cannot use Long-Range Scan view
+        // Show static instead
+        pass
+    else if systems.longRange == DAMAGED:
+        // Show false echoes
+        // Handled in RenderLongRangeScan
+        pass
+    
+    // Radio
+    if systems.radio == DESTROYED:
+        // No starbase attack alerts
+        // Player must manually check Galactic Chart
+        pass
+    else if systems.radio == DAMAGED:
+        // Delayed/garbled messages
+        // Handled in SendAlert
+        pass
+
+================================================================================
+13. HYPERSPACE NAVIGATION
+HYPERSPACE SYSTEM:
+function InitiateHyperspace(targetSector):
+    // Check if already in hyperspace
+    if currentState == HYPERSPACE:
+        return false
+    
+    // Calculate energy cost
+    energyCost = CalculateHyperspaceEnergy(playerSector, targetSector)
+    
+    // Check if enough energy
+    if playerEnergy < energyCost:
+        ShowMessage("INSUFFICIENT ENERGY FOR HYPERSPACE")
+        PlaySound("error")
+        return false
+    
+    // Deduct energy
+    playerEnergy -= energyCost
+    
+    // Store destination
+    hyperspaceDestination = targetSector
+    
+    // Change state
+    StateManager.ChangeState(HYPERSPACE)
+    
+    // Start animation
+    StartHyperspaceAnimation()
+    
+    return true
+
+function UpdateHyperspaceState(deltaTime):
+    hyperspaceTimer += deltaTime
+    
+    // Manual navigation required for Warrior/Commander
+    if difficultyLevel == WARRIOR or difficultyLevel == COMMANDER:
+        UpdateManualHyperspace(deltaTime)
+    else:
+        // Automatic navigation
+        if hyperspaceTimer >= 3.0:
+            // Arrive at destination
+            ArriveAtSector(hyperspaceDestination)
+    
+    // Update visual effects
+    UpdateHyperspaceAnimation(deltaTime)
+
+MANUAL HYPERSPACE NAVIGATION:
+function UpdateManualHyperspace(deltaTime):
+    // Apply random drift
+    driftTimer += deltaTime
+    
+    if driftTimer >= 0.5:
+        // Apply new drift vector
+        driftX = Random(-1, 1)
+        driftY = Random(-1, 1)
+        
+        // Commander difficulty: stronger drift
+        if difficultyLevel == COMMANDER:
+            driftX *= 1.5
+            driftY *= 1.5
+        
+        crosshairOffset.x += driftX
+        crosshairOffset.y += driftY
+        
+        driftTimer = 0
+    
+    // Apply player corrections
+    if input.left:
+        crosshairOffset.x -= 5 * deltaTime
+    if input.right:
+        crosshairOffset.x += 5 * deltaTime
+    if input.up:
+        crosshairOffset.y -= 5 * deltaTime
+    if input.down:
+        crosshairOffset.y += 5 * deltaTime
+    
+    // Check if hyperspace complete
+    if hyperspaceTimer >= 3.0:
+        // Check if crosshair was kept centered
+        centeringAccuracy = CalculateCenteringAccuracy()
+        
+    if centeringAccuracy > 0.8:  // 80% accuracy required
+            // Success - arrive at intended destination
+            ArriveAtSector(hyperspaceDestination)
+        else:
+            // Failure - arrive at random adjacent sector
+            randomSector = GetRandomAdjacentSector(hyperspaceDestination)
+            ArriveAtSector(randomSector)
+            ShowMessage("HYPERSPACE NAVIGATION ERROR")
+            PlaySound("error")
+
+function CalculateCenteringAccuracy():
+    // Calculate how well player kept crosshair centered
+    totalOffset = 0
+    sampleCount = hyperspaceOffsetSamples.length
+    
+    for offset in hyperspaceOffsetSamples:
+        distance = sqrt(offset.x * offset.x + offset.y * offset.y)
+        totalOffset += distance
+    
+    averageOffset = totalOffset / sampleCount
+    maxAllowedOffset = 20  // pixels
+    
+    accuracy = 1.0 - (averageOffset / maxAllowedOffset)
+    return Clamp(accuracy, 0, 1)
+
+function GetRandomAdjacentSector(sector):
+    offsets = [
+        {x: -1, y: 0}, {x: 1, y: 0},
+        {x: 0, y: -1}, {x: 0, y: 1}
+    ]
+    
+    randomOffset = offsets[RandomInt(0, 3)]
+    
+    newX = Clamp(sector.x + randomOffset.x, 0, 15)
+    newY = Clamp(sector.y + randomOffset.y, 0, 15)
+    
+    return {x: newX, y: newY}
+
+function ArriveAtSector(sector):
+    playerSector = sector
+    
+    // Load sector contents
+    LoadSector(sector)
+    
+    // Reset player position to center of sector
+    playerPosition = {x: 0, y: 0, z: 0}
+    
+    // Change state back to playing
+    StateManager.ChangeState(PLAYING)
+    
+    PlaySound("hyperspace_exit")
+
+================================================================================
+14. STARBASE SYSTEM
+STARBASE IMPLEMENTATION:
+class Starbase:
+    position = {x: 0, y: 0}  // Sector coordinates
+    destroyed = false
+    underAttack = false
+    attackTimer = 0  // Countdown in centons
+    surroundingEnemies = []
+
+function UpdateStarbases(deltaTime):
+    for starbase in starbases:
+        if starbase.destroyed:
+            continue
+        
+        if starbase.underAttack:
+            // Update countdown
+            starbase.attackTimer -= deltaTime * 60  // Convert to centons
+            
+            // Check if countdown expired
+            if starbase.attackTimer <= 0:
+                DestroyStarbase(starbase)
+            
+            // Visual/audio alerts
+            if systems.radio != DESTROYED:
+                if floor(starbase.attackTimer) % 10 == 0:
+                    PlaySound("alert_beep")
+        
+        // Check if still surrounded
+        CheckStarbaseSurround(starbase)
+
+function DockAtStarbase():
+    // Check if player is in starbase sector
+    starbase = GetStarbaseInSector(playerSector)
+    
+    if starbase == null:
+        ShowMessage("NO STARBASE IN THIS SECTOR")
+        PlaySound("error")
+        return false
+    
+    if starbase.destroyed:
+        ShowMessage("STARBASE DESTROYED")
+        PlaySound("error")
+        return false
+    
+    // Check if close enough
+    distanceToStarbase = Distance(playerPosition, {x: 0, y: 0, z: 0})
+    
+    if distanceToStarbase > 10:
+        ShowMessage("TOO FAR FROM STARBASE")
+        PlaySound("error")
+        return false
+    
+    // Check if velocity is low enough
+    if playerVelocity > 2:
+        ShowMessage("REDUCE SPEED TO DOCK")
+        PlaySound("error")
+        return false
+    
+    // Dock!
+    StateManager.ChangeState(DOCKING)
+    PlaySound("docking")
+    
+    return true
+
+function CompleteDocking():
+    // Repair all systems
+    RepairAllSystems()
+    
+    // Refuel energy
+    playerEnergy = 7000
+    
+    // Return to Galactic Chart
+    StateManager.ChangeState(GALACTIC_CHART)
+    
+    ShowMessage("DOCKING COMPLETE - ALL SYSTEMS REPAIRED")
+
+function DestroyStarbase(starbase):
+    starbase.destroyed = true
+    starbase.underAttack = false
+    
+    // Check if last starbase
+    remainingBases = CountRemainingStarbases()
+    
+    if remainingBases == 0:
+        // Game over - all starbases destroyed
+        GameOver(ALL_STARBASES_DESTROYED)
+    else:
+        ShowMessage("STARBASE DESTROYED! " + remainingBases + " REMAINING")
+        PlaySound("starbase_destroyed")
+    
+    // Enemy squadrons split and seek new target
+    for enemy in starbase.surroundingEnemies:
+        enemy.target = FindTargetStarbase()
+
+function DefendStarbase(starbase):
+    // Player arrived to defend
+    if starbase.underAttack:
+        // Check if player destroyed at least one surrounding squadron
+        surroundingEnemies = GetSurroundingEnemies(starbase)
+        
+        if surroundingEnemies.length < 2:
+            // Siege broken!
+            starbase.underAttack = false
+            starbase.attackTimer = 0
+            ShowMessage("STARBASE DEFENSE SUCCESSFUL")
+            PlaySound("defense_success")
+
+================================================================================
+15. INPUT HANDLING SYSTEM
+INPUT MANAGER:
+class InputManager:
+    keyState = {}  // Current frame key states
+    previousKeyState = {}  // Previous frame key states
+    joystickState = {x: 0, y: 0, fire: false}
+
+function UpdateInput():
+    // Copy current state to previous
+    previousKeyState = Copy(keyState)
+    
+    // Poll current input
+    PollKeyboard()
+    PollJoystick()  // If gamepad present
+    PollMouse()     // Optional
+
+function PollKeyboard():
+    // Speed control (0-9)
+    for i in 0 to 9:
+        if IsKeyDown(KEY_0 + i):
+            playerVelocity = i
+    
+    // View selection
+    if IsKeyPressed(KEY_F):
+        StateManager.ChangeState(PLAYING)  // Fore view
+    if IsKeyPressed(KEY_A):
+        currentView = AFT_VIEW
+    if IsKeyPressed(KEY_G):
+        StateManager.ChangeState(GALACTIC_CHART)
+    if IsKeyPressed(KEY_L):
+        if systems.longRange != DESTROYED:
+            currentView = LONG_RANGE_SCAN
+        else:
+            ShowMessage("LONG RANGE SCAN DESTROYED")
+    if IsKeyPressed(KEY_H):
+        // Hyperspace (from Galactic Chart)
+        if currentState == GALACTIC_CHART:
+            InitiateHyperspace(cursorPosition)
+    
+    // System toggles
+    if IsKeyPressed(KEY_S):
+        ToggleShields()
+    if IsKeyPressed(KEY_T):
+        ToggleComputer()
+    
+    // Fire button
+    if IsKeyDown(KEY_SPACE) or IsKeyDown(KEY_CTRL):
+        FireTorpedo(playerPosition, GetPlayerFacingDirection(), PLAYER)
+    
+    // Arrow keys for steering
+    if IsKeyDown(KEY_LEFT):
+        input.left = true
+    if IsKeyDown(KEY_RIGHT):
+        input.right = true
+    if IsKeyDown(KEY_UP):
+        input.up = true
+    if IsKeyDown(KEY_DOWN):
+        input.down = true
+    
+    // Pause
+    if IsKeyPressed(KEY_ESC):
+        if currentState == PLAYING:
+            StateManager.ChangeState(PAUSED)
+        else if currentState == PAUSED:
+            StateManager.ChangeState(PLAYING)
+
+function PollJoystick():
+    if not GamepadConnected():
+        return
+    
+    // Get analog stick values (-1.0 to 1.0)
+    joystickState.x = GetGamepadAxis(LEFT_STICK_X)
+    joystickState.y = GetGamepadAxis(LEFT_STICK_Y)
+    
+    // Apply deadzone
+    if abs(joystickState.x) < 0.1:
+        joystickState.x = 0
+    if abs(joystickState.y) < 0.1:
+        joystickState.y = 0
+    
+    // Fire button
+    if IsGamepadButtonDown(BUTTON_A):
+        FireTorpedo(playerPosition, GetPlayerFacingDirection(), PLAYER)
+    
+    // Speed up/down
+    if IsGamepadButtonPressed(BUTTON_R1):
+        playerVelocity = Clamp(playerVelocity + 1, 0, 9)
+    if IsGamepadButtonPressed(BUTTON_L1):
+        playerVelocity = Clamp(playerVelocity - 1, 0, 9)
+
+function IsKeyPressed(key):
+    // Key was just pressed this frame (not held from previous)
+    return keyState[key] and not previousKeyState[key]
+
+function IsKeyDown(key):
+    // Key is currently down
+    return keyState[key]
+
+function ToggleShields():
+    if systems.shields == DESTROYED:
+        ShowMessage("SHIELDS DESTROYED")
+        PlaySound("error")
+        return
+    
+    shieldsActive = not shieldsActive
+    
+    if shieldsActive:
+        PlaySound("shields_on")
+        ShowMessage("SHIELDS ON")
+    else:
+        PlaySound("shields_off")
+        ShowMessage("SHIELDS OFF")
+
+function ToggleComputer():
+    if systems.computer == DESTROYED:
+        ShowMessage("COMPUTER DESTROYED")
+        PlaySound("error")
+        return
+    
+    computerActive = not computerActive
+    
+    if computerActive:
+        PlaySound("computer_on")
+        ShowMessage("ATTACK COMPUTER ON")
+    else:
+        PlaySound("computer_off")
+        ShowMessage("ATTACK COMPUTER OFF")
+
+================================================================================
+16. AUDIO SYSTEM ARCHITECTURE
+AUDIO MANAGER:
+class AudioManager:
+    sounds = {}  // Dictionary of loaded sounds
+    music = {}   // Dictionary of music tracks
+    masterVolume = 1.0
+    soundVolume = 1.0
+    musicVolume = 1.0
+
+function LoadAudio():
+    // Load sound effects
+    sounds["torpedo_fire"] = LoadSound("torpedo_fire.wav")
+    sounds["explosion"] = LoadSound("explosion.wav")
+    sounds["player_hit"] = LoadSound("player_hit.wav")
+    sounds["enemy_hit"] = LoadSound("enemy_hit.wav")
+    sounds["shields_on"] = LoadSound("shields_on.wav")
+    sounds["shields_off"] = LoadSound("shields_off.wav")
+    sounds["computer_on"] = LoadSound("computer_on.wav")
+    sounds["hyperspace_enter"] = LoadSound("hyperspace_enter.wav")
+    sounds["hyperspace_exit"] = LoadSound("hyperspace_exit.wav")
+    sounds["docking"] = LoadSound("docking.wav")
+    sounds["repair"] = LoadSound("repair.wav")
+    sounds["alert_beep"] = LoadSound("alert_beep.wav")
+    sounds["low_energy_beep"] = LoadSound("low_energy_beep.wav")
+    sounds["critical_energy_beep"] = LoadSound("critical_energy_beep.wav")
+    sounds["error"] = LoadSound("error.wav")
+    sounds["system_damage"] = LoadSound("system_damage.wav")
+    sounds["collision"] = LoadSound("collision.wav")
+    
+    // Load music (optional)
+    music["title"] = LoadMusic("title_theme.ogg")
+    music["gameplay"] = LoadMusic("gameplay_ambient.ogg")
+    music["victory"] = LoadMusic("victory_fanfare.ogg")
+
+function PlaySound(soundName, volume = 1.0):
+    if soundName not in sounds:
+        return
+    
+    sound = sounds[soundName]
+    effectiveVolume = volume * soundVolume * masterVolume
+    
+    PlaySoundEffect(sound, effectiveVolume)
+
+function PlayMusic(musicName, loop = true):
+    if musicName not in music:
+        return
+    
+    track = music[musicName]
+    effectiveVolume = musicVolume * masterVolume
+    
+    PlayMusicTrack(track, effectiveVolume, loop)
+
+function UpdateAudio():
+    // Update positional audio (if implemented)
+    // Update engine sound pitch based on velocity
+    UpdateEngineSound()
+
+function UpdateEngineSound():
+    // Engine sound pitch scales with velocity
+    basePitch = 1.0
+    pitchMultiplier = 0.1 * playerVelocity
+    
+    enginePitch = basePitch + pitchMultiplier
+    
+    SetSoundPitch("engine_loop", enginePitch)
+    
+    // Volume based on velocity
+    engineVolume = 0.3 + (0.2 * (playerVelocity / 9))
+    SetSoundVolume("engine_loop", engineVolume)
+
+AUDIO SPECIFICATIONS:
+Sound Effects Format:
+- Format: WAV or OGG
+- Sample Rate: 44.1 kHz
+- Bit Depth: 16-bit
+- Channels: Mono (most effects) or Stereo
+- Length: 0.1s - 2s (most effects)
+
+Music Format:
+- Format: OGG Vorbis (compressed)
+- Sample Rate: 44.1 kHz
+- Bit Rate: 128-192 kbps
+- Channels: Stereo
+- Loop-ready: Yes (seamless loops)
+
+Sound Design Style:
+- Retro synthesized sounds
+- 8-bit/16-bit aesthetic
+- No orchestral instruments
+- Simple waveforms (square, sawtooth, sine)
+- Short attack/decay envelopes
+
+================================================================================
+17. SAVE/LOAD SYSTEM
+SAVE SYSTEM:
+function SaveGame(slotNumber):
+    saveData = {
+        version: "1.0",
+        timestamp: GetCurrentTimestamp(),
+        difficulty: difficultyLevel,
+        missionTime: missionTime,
+        
+        player: {
+            sector: playerSector,
+            position: playerPosition,
+            velocity: playerVelocity,
+            energy: playerEnergy,
+            kills: playerKills
+        },
+        
+        systems: {
+            photon: systems.photon,
+            engines: systems.engines,
+            shields: systems.shields,
+            computer: systems.computer,
+            longRange: systems.longRange,
+            radio: systems.radio
+        },
+        
+        systemsActive: {
+            shields: shieldsActive,
+            computer: computerActive
+        },
+        
+        galaxy: SerializeGalaxy(),
+        starbases: SerializeStarbases(),
+        enemies: SerializeEnemies(),
+        
+        score: score
+    }
+    
+    // Convert to JSON
+    jsonString = JSON.stringify(saveData)
+    
+    // Save to file/local storage
+    success = WriteToFile("save_" + slotNumber + ".json", jsonString)
+    
+    if success:
+        ShowMessage("GAME SAVED")
+        PlaySound("save")
+    else:
+        ShowMessage("SAVE FAILED")
+        PlaySound("error")
+    
+    return success
+
+function LoadGame(slotNumber):
+    // Read from file/local storage
+    jsonString = ReadFromFile("save_" + slotNumber + ".json")
+    
+    if jsonString == null:
+        ShowMessage("NO SAVE DATA FOUND")
+        PlaySound("error")
+        return false
+    
+    try:
+        saveData = JSON.parse(jsonString)
+        
+        // Validate version
+        if saveData.version != "1.0":
+            ShowMessage("INCOMPATIBLE SAVE VERSION")
+            return false
+        
+        // Restore game state
+        difficultyLevel = saveData.difficulty
+        missionTime = saveData.missionTime
+        
+        // Restore player
+        playerSector = saveData.player.sector
+        playerPosition = saveData.player.position
+        playerVelocity = saveData.player.velocity
+        playerEnergy = saveData.player.energy
+        playerKills = saveData.player.kills
+        
+        // Restore systems
+        systems.photon = saveData.systems.photon
+        systems.engines = saveData.systems.engines
+        systems.shields = saveData.systems.shields
+        systems.computer = saveData.systems.computer
+        systems.longRange = saveData.systems.longRange
+        systems.radio = saveData.systems.radio
+        
+        shieldsActive = saveData.systemsActive.shields
+        computerActive = saveData.systemsActive.computer
+        
+        // Restore galaxy
+        DeserializeGalaxy(saveData.galaxy)
+        DeserializeStarbases(saveData.starbases)
+        DeserializeEnemies(saveData.enemies)
+        
+        score = saveData.score
+        
+        ShowMessage("GAME LOADED")
+        PlaySound("load")
+        
+        // Return to playing state
+        StateManager.ChangeState(PLAYING)
+        
+        return true
+        
+    catch error:
+        ShowMessage("CORRUPTED SAVE FILE")
+        PlaySound("error")
+        return false
+
+function SerializeGalaxy():
+    galaxyData = []
+    
+    for x in 0 to 15:
+        for y in 0 to 15:
+            sector = galaxy[x][y]
+            if sector.enemies.length > 0 or sector.starbase != null:
+                galaxyData.append({
+                    x: x,
+                    y: y,
+                    hasStarbase: sector.starbase != null,
+                    enemyCount: sector.enemies.length
+                })
+    
+    return galaxyData
+
+function DeserializeGalaxy(galaxyData):
+    // Clear galaxy
+    InitializeEmptyGalaxy()
+    
+    // Restore data
+    for sectorData in galaxyData:
+        x = sectorData.x
+        y = sectorData.y
+        
+        if sectorData.hasStarbase:
+            galaxy[x][y].starbase = CreateStarbase()
+        
+        // Enemy restoration handled separately
+================================================================================
+18. PERFORMANCE OPTIMIZATION
+OBJECT POOLING:
+class ObjectPool:
+    pool = []
+    activeObjects = []
+    inactiveObjects = []
+    
+    function Initialize(objectType, poolSize):
+        for i in 0 to poolSize:
+            obj = CreateObject(objectType)
+            obj.active = false
+            pool.append(obj)
+            inactiveObjects.append(obj)
+    
+    function Get():
+        if inactiveObjects.length == 0:
+            // Pool exhausted, create new object
+            obj = CreateObject(objectType)
+            pool.append(obj)
+        else:
+            obj = inactiveObjects.pop()
+        
+        obj.active = true
+        activeObjects.append(obj)
+        return obj
+    
+    function Return(obj):
+        obj.active = false
+        activeObjects.remove(obj)
+        inactiveObjects.append(obj)
+
+// Usage example:
+torpedoPool = new ObjectPool()
+torpedoPool.Initialize(TORPEDO, 50)
+
+function FireTorpedo(...):
+    torpedo = torpedoPool.Get()
+    torpedo.position = position
+    torpedo.velocity = velocity
+    // ... initialize torpedo
+    return torpedo
+
+function RemoveTorpedo(torpedo):
+    torpedoPool.Return(torpedo)
+
+RENDER OPTIMIZATION:
+function OptimizeRendering():
+    // Frustum culling
+    visibleEnemies = []
+    
+    for enemy in currentSectorEnemies:
+        if IsInFrustum(enemy.position):
+            visibleEnemies.append(enemy)
+    
+    // Sort by depth (far to near)
+    visibleEnemies.sort(key: depth, order: DESCENDING)
+    
+    // Batch rendering
+    BeginBatch()
+    
+    for enemy in visibleEnemies:
+        AddToBatch(enemy)
+    
+    EndBatch()  // Single draw call
+
+function IsInFrustum(position):
+    // Check if position is within camera view frustum
+    cameraSpace = WorldToCameraSpace(position)
+    
+    // Check if in front of camera
+    if cameraSpace.z < camera.nearPlane or cameraSpace.z > camera.farPlane:
+        return false
+    
+    // Check horizontal bounds
+    halfWidth = (camera.fov / 2) * cameraSpace.z
+    if abs(cameraSpace.x) > halfWidth:
+        return false
+    
+    // Check vertical bounds
+    halfHeight = (camera.fov / 2) * cameraSpace.z
+    if abs(cameraSpace.y) > halfHeight:
+        return false
+    
+    return true
+
+PARTICLE OPTIMIZATION:
+class ParticleSystem:
+    maxParticles = 500
+    particles = []
+    
+    function Update(deltaTime):
+        // Update only active particles
+        for i in particles.length - 1 down to 0:
+            particle = particles[i]
+            
+            particle.lifetime -= deltaTime
+            
+            if particle.lifetime <= 0:
+                particles.removeAt(i)
+                continue
+            
+            particle.position.x += particle.velocity.x * deltaTime
+            particle.position.y += particle.velocity.y * deltaTime
+            particle.position.z += particle.velocity.z * deltaTime
+            
+            // Fade out over lifetime
+            particle.alpha = particle.lifetime / particle.maxLifetime
+    
+    function Emit(position, count, particleType):
+        // Limit particle count
+        if particles.length + count > maxParticles:
+            count = maxParticles - particles.length
+        
+        for i in 0 to count:
+            particle = CreateParticle(particleType)
+            particle.position = position
+            particle.velocity = RandomVelocity()
+            particles.append(particle)
+
+PROFILING TARGETS:
+Performance Budget (60 FPS = 16.67ms per frame):
+- Input Processing: 0.5ms
+- Game Logic: 4.0ms
+  - AI Update: 2.0ms
+  - Physics: 1.0ms
+  - Collision: 1.0ms
+- Rendering: 10.0ms
+  - Starfield: 2.0ms
+  - 3D Objects: 5.0ms
+  - Particles: 1.0ms
+  - UI/HUD: 2.0ms
+- Audio: 1.0ms
+- Buffer: 1.17ms
+
+Total: 16.67ms
+
+================================================================================
+19. MEMORY MANAGEMENT
+MEMORY POOLS:
+class MemoryManager:
+    textureCache = {}
+    soundCache = {}
+    
+    function LoadTexture(filename):
+        if filename in textureCache:
+            return textureCache[filename]
+        
+        texture = LoadTextureFromFile(filename)
+        textureCache[filename] = texture
+        return texture
+    
+    function UnloadTexture(filename):
+        if filename in textureCache:
+            FreeTexture(textureCache[filename])
+            delete textureCache[filename]
+    
+    function ClearCache():
+        for texture in textureCache.values():
+            FreeTexture(texture)
+        textureCache.clear()
+
+function ManageMemory():
+    // Unload unused assets when changing states
+    if previousState == TITLE_SCREEN and currentState == PLAYING:
+        UnloadTitleAssets()
+        LoadGameplayAssets()
+    
+    // Periodic garbage collection (if applicable)
+    if frameCount % 1800 == 0:  // Every 30 seconds at 60 FPS
+        ForceGarbageCollection()
+
+MEMORY TARGETS:
+Target Memory Usage:
+- Textures: 128 MB
+- Audio: 50 MB
+- Game State: 5 MB
+- Code/Executable: 25 MB
+Total: ~200 MB
+
+Texture Breakdown:
+- Enemy sprites (all sizes): 20 MB
+- UI elements: 10 MB
+- Effects (explosions, particles): 30 MB
+- Backgrounds (starfields): 20 MB
+- Fonts: 5 MB
+- Miscellaneous: 43 MB
+
+================================================================================
+20. NETWORK ARCHITECTURE (FUTURE)
+ONLINE LEADERBOARD DESIGN (Optional Future Feature):
+class LeaderboardManager:
+    apiEndpoint = "https://api.starraiders.com/leaderboard"
+    
+    function SubmitScore(playerName, score, difficulty, rank):
+        data = {
+            player: playerName,
+            score: score,
+            difficulty: difficulty,
+            rank: rank,
+            timestamp: GetCurrentTimestamp(),
+            version: "1.0"
+        }
+        
+        // Generate checksum to prevent tampering
+        checksum = CalculateChecksum(data)
+        data.checksum = checksum
+        
+        // Send to server
+        response = HTTPPost(apiEndpoint + "/submit", data)
+        
+        if response.success:
+            ShowMessage("SCORE SUBMITTED")
+        else:
+            ShowMessage("LEADERBOARD UNAVAILABLE")
+    
+    function GetLeaderboard(difficulty, limit = 100):
+        params = {
+            difficulty: difficulty,
+            limit: limit
+        }
+        
+        response = HTTPGet(apiEndpoint + "/top", params)
+        
+        if response.success:
+            return response.data
+        else:
+            return null
+
+// Not implemented in v1.0, but architecture designed to support it
+
+================================================================================
+21. TESTING FRAMEWORK
+UNIT TESTS:
+function TestGalaxyGeneration():
+    // Test that galaxy generates correctly
+    galaxy = InitializeGalaxy(NOVICE)
+    
+    Assert(galaxy.length == 16)
+    Assert(galaxy[0].length == 16)
+    
+    // Count starbases
+    starbaseCount = 0
+    for x in 0 to 15:
+        for y in 0 to 15:
+            if galaxy[x][y].starbase != null:
+                starbaseCount++
+    
+    Assert(starbaseCount == 4)  // Novice has 4 starbases
+    
+    // Count enemies
+    enemyCount = 0
+    for x in 0 to 15:
+        for y in 0 to 15:
+            enemyCount += galaxy[x][y].enemies.length
+    
+    Assert(enemyCount >= 10 and enemyCount <= 12)  // Novice range
+
+function TestEnergyConsumption():
+    playerEnergy = 7000
+    playerVelocity = 6
+    deltaTime = 1.0  // 1 second
+    
+    energyBefore = playerEnergy
+    UpdateEnergy(deltaTime)
+    energyAfter = playerEnergy
+    
+    expectedConsumption = 8  // Speed 6 = 8 energy/second
+    actualConsumption = energyBefore - energyAfter
+    
+    Assert(abs(actualConsumption - expectedConsumption) < 0.1)
+
+function TestCollisionDetection():
+    torpedo = {position: {x: 0, y: 0, z: 0}, radius: 2}
+    enemy = {position: {x: 3, y: 0, z: 0}, radius: 5}
+    
+    // Should collide (distance 3, radii sum 7)
+    Assert(CheckSphereCollision(torpedo.position, torpedo.radius, 
+                                enemy.position, enemy.radius))
+    
+    // Should not collide
+    enemy.position.x = 10
+    Assert(not CheckSphereCollision(torpedo.position, torpedo.radius,
+                                    enemy.position, enemy.radius))
+
+function TestDamageSystem():
+    systems.photon = OPERATIONAL
+    
+    DamageSystem("photon")
+    Assert(systems.photon == DAMAGED)
+    
+    DamageSystem("photon")
+    Assert(systems.photon == DESTROYED)
+
+INTEGRATION TESTS:
+function TestCompleteGameLoop():
+    // Initialize game
+    InitializeGame(NOVICE)
+    
+    // Simulate gameplay
+    for frame in 0 to 3600:  // 1 minute at 60 FPS
+        UpdateGame(1.0 / 60.0)
+        RenderFrame()
+    
+    // Check that game didn't crash
+    Assert(gameRunning == true)
+
+function TestHyperspaceNavigation():
+    playerSector = {x: 5, y: 5}
+    targetSector = {x: 10, y: 10}
+    
+    energyBefore = playerEnergy
+    
+    success = InitiateHyperspace(targetSector)
+    Assert(success == true)
+    
+    // Simulate hyperspace (automatic for Novice)
+    SimulateFrames(180)  // 3 seconds
+    
+    // Should arrive at target
+    Assert(playerSector.x == 10)
+    Assert(playerSector.y == 10)
+    
+    // Energy should be consumed
+    Assert(playerEnergy < energyBefore)
+
+function SimulateFrames(count):
+    for i in 0 to count:
+        UpdateGame(1.0 / 60.0)
+
+PLAYTESTING CHECKLIST:
+Gameplay Tests:
+☐ Complete mission on Novice
+☐ Complete mission on Pilot
+☐ Complete mission on Warrior
+☐ Complete mission on Commander
+☐ Dock at starbase successfully
+☐ Defend starbase from attack
+☐ Navigate manually in hyperspace (Warrior/Commander)
+☐ Achieve all 20 ranks
+☐ Test all system damage states
+☐ Test all system destruction states
+☐ Destroy all enemy types
+☐ Experience all failure conditions
+
+Bug Checks:
+☐ No crashes during normal gameplay
+☐ No memory leaks over extended play
+☐ No visual artifacts or glitches
+☐ No audio issues or crackling
+☐ Save/load works correctly
+☐ All controls responsive
+☐ Frame rate stable at 60 FPS
+☐ No collision detection errors
+☐ AI behaves as expected
+☐ Scoring calculates correctly
+
+================================================================================
+22. BUILD AND DEPLOYMENT
+BUILD CONFIGURATION:
+Development Build:
+- Debug symbols enabled
+- Console logging enabled
+- Profiling tools active
+- Cheats/debug commands available
+- Assert
+
+ions active
+
+Release Build:
+- Debug symbols stripped
+- Console logging disabled
+- Profiling disabled
+- Cheats/debug commands removed
+- Optimizations enabled (-O3 or equivalent)
+- Assets compressed
+
+Platform-Specific:
+Windows:
+- Target: x64 architecture
+- Compiler: MSVC or MinGW
+- Package: .exe + DLLs in folder, or installer
+
+Mac:
+- Target: Universal binary (Intel + Apple Silicon)
+- Compiler: Clang
+- Package: .app bundle or .dmg
+
+Linux:
+- Target: x64 architecture
+- Compiler: GCC or Clang
+- Package: AppImage or .deb/.rpm
+
+Web:
+- Target: WebAssembly
+- Framework: Emscripten
+- Package: HTML + WASM files
+
+BUILD SCRIPT EXAMPLE:
+
+```bash
+#!/bin/bash
+# build.sh - Star Raiders build script
+
+BUILD_TYPE=$1  # debug or release
+PLATFORM=$2    # windows, mac, linux, web
+
+echo "Building Star Raiders - $BUILD_TYPE for $PLATFORM"
+
+# Set compiler flags
+if [ "$BUILD_TYPE" = "release" ]; then
+    FLAGS="-O3 -DNDEBUG -s"
+else
+    FLAGS="-g -O0 -DDEBUG"
+fi
+
+# Platform-specific builds
+case $PLATFORM in
+    windows)
+        gcc $FLAGS -o StarRaiders.exe src/*.c -lSDL2 -lSDL2_mixer
+        ;;
+    mac)
+        clang $FLAGS -o StarRaiders src/*.c -lSDL2 -lSDL2_mixer
+        # Create app bundle
+        ./create_app_bundle.sh
+        ;;
+    linux)
+        gcc $FLAGS -o StarRaiders src/*.c -lSDL2 -lSDL2_mixer
+        ;;
+    web)
+        emcc $FLAGS -o StarRaiders.html src/*.c \
+            -s USE_SDL=2 -s USE_SDL_MIXER=2 \
+            --preload-file assets
+        ;;
+esac
+
+echo "Build complete!"
+
+ASSET PIPELINE:
+- Asset Processing:
+- Source assets (PSD, AI, WAV) → Exported formats (PNG, OGG)
+- Texture packing (combine sprites into atlases)
+- Audio conversion (WAV → OGG for compression)
+- Asset compression (lossless PNG compression)
+- Generate sprite sheet maps (JSON)
+- Copy to build directory
+
+Automated Script:
+#!/bin/bash
+# process_assets.sh
+
+echo "Processing assets..."
+
+# Convert textures
+for file in assets/source/*.psd; do
+    basename=$(basename "$file" .psd)
+    convert "$file" "assets/textures/${basename}.png"
+    pngquant "assets/textures/${basename}.png" --force --output \
+        "assets/textures/${basename}_compressed.png"
+done
+
+# Convert audio
+for file in assets/source/audio/*.wav; do
+    basename=$(basename "$file" .wav)
+    ffmpeg -i "$file" -c:a libvorbis -q:a 5 \
+        "assets/audio/${basename}.ogg"
+done
+
+# Pack sprite sheets
+python tools/pack_sprites.py assets/sprites assets/atlases
+
+echo "Asset processing complete!"
+
+DEPLOYMENT CHECKLIST:
+Pre-Release:
+☐ All features complete
+☐ All bugs fixed (critical/high priority)
+☐ Performance targets met
+☐ All platforms tested
+☐ Save/load tested thoroughly
+☐ Achievements tested (if implemented)
+☐ Documentation complete
+☐ Credits screen complete
+☐ Version number updated
+
+Release Package:
+☐ Game executable
+☐ All required libraries/DLLs
+☐ Assets folder
+☐ README.txt
+☐ LICENSE.txt
+☐ CHANGELOG.txt
+☐ Installation instructions
+
+Distribution:
+☐ Upload to itch.io / Steam / etc.
+☐ Create promotional materials
+☐ Write release notes
+☐ Set up support channels
+☐ Monitor for crash reports
+
+================================================================================
+23. CODE ORGANIZATION
+RECOMMENDED FOLDER STRUCTURE:
+StarRaiders/
+├── src/
+│   ├── core/
+│   │   ├── game_loop.c
+│   │   ├── state_manager.c
+│   │   └── input_handler.c
+│   ├── systems/
+│   │   ├── galaxy.c
+│   │   ├── combat.c
+│   │   ├── energy.c
+│   │   ├── pesclr.c
+│   │   └── navigation.c
+│   ├── entities/
+│   │   ├── player.c
+│   │   ├── enemy.c
+│   │   ├── starbase.c
+│   │   └── torpedo.c
+│   ├── ai/
+│   │   ├── enemy_ai.c
+│   │   └── pathfinding.c
+│   ├── rendering/
+│   │   ├── renderer.c
+│   │   ├── screen_manager.c
+│   │   ├── hud.c
+│   │   └── effects.c
+│   ├── audio/
+│   │   └── sound_manager.c
+│   ├── ui/
+│   │   ├── title_screen.c
+│   │   ├── galactic_chart.c
+│   │   ├── combat_view.c
+│   │   └── ranking_screen.c
+│   └── utils/
+│       ├── math_utils.c
+│       ├── constants.h
+│       └── helpers.c
+├── assets/
+│   ├── sprites/
+│   ├── audio/
+│   └── fonts/
+├── docs/
+│   ├── Star_Raiders_PRD.md
+│   ├── star_raiders_technical_notes.txt
+│   └── QUICKSTART_DEVELOPER_GUIDE.md
+├── tests/
+│   ├── unit_tests.c
+│   └── integration_tests.c
+├── tools/
+│   ├── pack_sprites.py
+│   └── process_assets.sh
+├── build/
+│   └── (build output)
+├── README.md
+├── LICENSE
+└── Makefile
+
+NAMING CONVENTIONS:
+Files:
+- snake_case for all file names
+- .c for C source files
+- .h for C header files
+- .cpp/.hpp for C++
+
+Functions:
+- PascalCase for public API functions
+- camelCase for internal functions
+- UPPER_SNAKE_CASE for macros
+
+Variables:
+- camelCase for local variables
+- snake_case for global variables
+- g_ prefix for global variables
+- m_ prefix for member variables (C++)
+
+Constants:
+- UPPER_SNAKE_CASE for constants
+- #define for compile-time constants
+- const for runtime constants
+
+Types/Structs:
+- PascalCase for struct/class names
+- typedef struct Name { ... } Name;
+
+CODE STYLE EXAMPLE:
+// enemy.h - Enemy entity header
+#ifndef ENEMY_H
+#define ENEMY_H
+
+#include "utils/math_utils.h"
+
+// Constants
+#define MAX_ENEMY_HEALTH 3
+#define ENEMY_FIRE_RANGE 70.0f
+
+// Enemy types
+typedef enum {
+    ENEMY_FIGHTER,
+    ENEMY_CRUISER,
+    ENEMY_BASESTAR
+} EnemyType;
+
+// Enemy structure
+typedef struct Enemy {
+    Vector3 position;
+    Vector3 velocity;
+    float rotation;
+    EnemyType type;
+    int health;
+    float speed;
+    bool provoked;
+    float fireCooldown;
+} Enemy;
+
+// Public API
+Enemy* CreateEnemy(EnemyType type);
+void DestroyEnemy(Enemy* enemy);
+void UpdateEnemy(Enemy* enemy, float deltaTime);
+void RenderEnemy(Enemy* enemy);
+
+// Internal functions
+float getEnemySpeed(EnemyType type);
+int getEnemyHealth(EnemyType type);
+
+#endif // ENEMY_H
+
+================================================================================
+24. API REFERENCE
+CORE API:
+// Game initialization and lifecycle
+void InitializeGame(DifficultyLevel difficulty);
+void ShutdownGame();
+void UpdateGame(float deltaTime);
+void RenderGame();
+
+// State management
+void ChangeGameState(GameState newState);
+GameState GetCurrentState();
+
+// Galaxy system
+Galaxy* InitializeGalaxy(DifficultyLevel difficulty);
+void UpdateGalaxyState(float deltaTime);
+Sector* GetSector(int x, int y);
+
+// Player control
+void SetPlayerVelocity(int speed);  // 0-9
+int GetPlayerVelocity();
+void UpdatePlayerRotation(float yaw, float pitch);
+void ToggleShields();
+void ToggleComputer();
+
+// Combat
+Torpedo* FireTorpedo(Vector3 position, Vector3 direction, Owner owner);
+void UpdateTorpedoes(float deltaTime);
+bool CheckCollision(Torpedo* torpedo, Enemy* enemy);
+
+// Energy
+void UpdateEnergy(float deltaTime);
+void ConsumeEnergy(float amount);
+float GetCurrentEnergy();
+float GetMaxEnergy();
+
+// Systems (PESCLR)
+void DamageSystem(SystemType system);
+void RepairAllSystems();
+SystemStatus GetSystemStatus(SystemType system);
+
+// Navigation
+bool InitiateHyperspace(Sector destination);
+void UpdateHyperspace(float deltaTime);
+bool DockAtStarbase();
+
+// AI
+void UpdateEnemyAI(float deltaTime);
+void StrategicAIUpdate();  // Galaxy-level
+void TacticalAIUpdate(Sector sector);  // Sector-level
+
+// Rendering
+void RenderScene();
+void RenderHUD();
+void RenderGalacticChart();
+Vector2 Project3DTo2D(Vector3 worldPos);
+
+// Audio
+void PlaySound(const char* soundName, float volume);
+void PlayMusic(const char* musicName, bool loop);
+void SetMasterVolume(float volume);
+
+// Input
+void UpdateInput();
+bool IsKeyPressed(KeyCode key);
+bool IsKeyDown(KeyCode key);
+Vector2 GetJoystickAxis();
+
+// Save/Load
+bool SaveGame(int slotNumber);
+bool LoadGame(int slotNumber);
+
+// Scoring
+void CalculateScore();
+const char* DetermineRank(int score, DifficultyLevel difficulty);
+
+DATA STRUCTURES:
+// Vector types
+typedef struct Vector2 {
+    float x, y;
+} Vector2;
+
+typedef struct Vector3 {
+    float x, y, z;
+} Vector3;
+
+// Sector coordinate
+typedef struct SectorCoord {
+    int x, y;  // 0-15
+} SectorCoord;
+
+// Galaxy
+typedef struct Sector {
+    SectorCoord coord;
+    Enemy* enemies[10];  // Max 10 enemies per sector
+    int enemyCount;
+    Starbase* starbase;
+} Sector;
+
+typedef struct Galaxy {
+    Sector sectors[16][16];
+} Galaxy;
+
+// Player
+typedef struct Player {
+    Vector3 position;
+    Vector3 rotation;
+    int velocity;  // 0-9
+    float energy;
+    int kills;
+    SectorCoord sector;
+} Player;
+
+// Ship systems
+typedef struct ShipSystems {
+    SystemStatus photon;
+    SystemStatus engines;
+    SystemStatus shields;
+    SystemStatus computer;
+    SystemStatus longRange;
+    SystemStatus radio;
+} ShipSystems;
+
+// Game state
+typedef struct GameData {
+    Player player;
+    ShipSystems systems;
+    Galaxy* galaxy;
+    DifficultyLevel difficulty;
+    float missionTime;  // In centons
+    int score;
+    bool shieldsActive;
+    bool computerActive;
+} GameData;
+
+================================================================================
+25. DEBUGGING TOOLS
+DEBUG CONSOLE:
+#ifdef DEBUG
+
+void InitDebugConsole() {
+    // Set up debug overlay
+    debugConsoleEnabled = true;
+}
+
+void UpdateDebugConsole() {
+    if (IsKeyPressed(KEY_TILDE)) {
+        debugConsoleVisible = !debugConsoleVisible;
+    }
+    
+    if (debugConsoleVisible) {
+        RenderDebugInfo();
+    }
+}
+
+void RenderDebugInfo() {
+    // Display current state
+    DrawText("=== DEBUG INFO ===", 10, 10, WHITE);
+    DrawText("FPS: " + GetFPS(), 10, 30, GREEN);
+    DrawText("Frame Time: " + GetFrameTime() + "ms", 10, 50, GREEN);
+    
+    // Player info
+    DrawText("Player Sector: " + playerSector.x + "," + playerSector.y, 
+             10, 80, YELLOW);
+    DrawText("Energy: " + playerEnergy, 10, 100, YELLOW);
+    DrawText("Velocity: " + playerVelocity, 10, 120, YELLOW);
+    
+    // Enemy info
+    DrawText("Enemies in sector: " + currentSectorEnemies.length, 
+             10, 150, RED);
+    DrawText("Total enemies: " + CountTotalEnemies(), 10, 170, RED);
+    
+    // Memory info
+    DrawText("Memory: " + GetMemoryUsage() + " MB", 10, 200, CYAN);
+    DrawText("Draw calls: " + GetDrawCallCount(), 10, 220, CYAN);
+}
+
+// Debug commands
+void ProcessDebugCommand(const char* command) {
+    if (strcmp(command, "god") == 0) {
+        godMode = !godMode;
+        Log("God mode: " + (godMode ? "ON" : "OFF"));
+    }
+    else if (strcmp(command, "energy+1000") == 0) {
+        playerEnergy += 1000;
+        Log("Added 1000 energy");
+    }
+    else if (strcmp(command, "repair") == 0) {
+        RepairAllSystems();
+        Log("All systems repaired");
+    }
+    else if (strcmp(command, "kill_all") == 0) {
+        DestroyAllEnemies();
+        Log("All enemies destroyed");
+    }
+    else if (strncmp(command, "tp ", 3) == 0) {
+        // Teleport: tp X Y
+        int x, y;
+        sscanf(command + 3, "%d %d", &x, &y);
+        playerSector.x = x;
+        playerSector.y = y;
+        LoadSector(playerSector);
+        Log("Teleported to " + x + "," + y);
+    }
+}
+
+#endif // DEBUG
+
+PROFILING TOOLS:
+#ifdef PROFILE
+
+typedef struct ProfileScope {
+    const char* name;
+    double startTime;
+} ProfileScope;
+
+#define PROFILE_SCOPE(name) \
+    ProfileScope __profile_##name = {#name, GetCurrentTimeMs()}; \
+    defer(ProfileEnd(&__profile_##name))
+
+void ProfileEnd(ProfileScope* scope) {
+    double endTime = GetCurrentTimeMs();
+    double duration = endTime - scope->startTime;
+    
+    RecordProfileData(scope->name, duration);
+    
+    if (duration > 16.67) {  // Exceeds frame budget
+        LogWarning(scope->name + " took " + duration + "ms (SLOW!)");
+    }
+}
+
+void RenderProfiler() {
+    // Display profiling data
+    int y = 300;
+    DrawText("=== PROFILER ===", 10, y, MAGENTA);
+    y += 20;
+    
+    for (auto& [name, duration] : profileData) {
+        Color color = duration > 16.67 ? RED : GREEN;
+        DrawText(name + ": " + duration + "ms", 10, y, color);
+        y += 20;
+    }
+}
+
+// Usage:
+void UpdateGame(float deltaTime) {
+    PROFILE_SCOPE(UpdateGame);
+    
+    {
+        PROFILE_SCOPE(UpdateAI);
+        UpdateEnemyAI(deltaTime);
+    }
+    
+    {
+        PROFILE_SCOPE(UpdatePhysics);
+        UpdatePlayerPhysics(deltaTime);
+    }
+    
+    // ... more updates
+}
+
+#endif // PROFILE
+
+LOGGING SYSTEM:
+typedef enum LogLevel {
+    LOG_DEBUG,
+    LOG_INFO,
+    LOG_WARNING,
+    LOG_ERROR
+} LogLevel;
+
+void Log(LogLevel level, const char* message) {
+    const char* prefix;
+    switch (level) {
+        case LOG_DEBUG:   prefix = "[DEBUG]"; break;
+        case LOG_INFO:    prefix = "[INFO]";  break;
+        case LOG_WARNING: prefix = "[WARN]";  break;
+        case LOG_ERROR:   prefix = "[ERROR]"; break;
+    }
+    
+    // Get timestamp
+    char timestamp;
+    GetCurrentTimestamp(timestamp, sizeof(timestamp));
+    
+    // Format message
+    printf("%s %s %s
+", timestamp, prefix, message);
+    
+    // Write to log file
+    FILE* logFile = fopen("starraiders.log", "a");
+    if (logFile) {
+        fprintf(logFile, "%s %s %s
+", timestamp, prefix, message);
+        fclose(logFile);
+    }
+}
+
+// Convenience macros
+#define LogDebug(msg)   Log(LOG_DEBUG, msg)
+#define LogInfo(msg)    Log(LOG_INFO, msg)
+#define LogWarning(msg) Log(LOG_WARNING, msg)
+#define LogError(msg)   Log(LOG_ERROR, msg)
+
+ASSERTION SYSTEM:
+#ifdef DEBUG
+
+#define Assert(condition, message) \
+    do { \
+        if (!(condition)) { \
+            fprintf(stderr, "ASSERTION FAILED: %s
+", message); \
+            fprintf(stderr, "  File: %s
+", __FILE__); \
+            fprintf(stderr, "  Line: %d
+", __LINE__); \
+            fprintf(stderr, "  Function: %s
+", __FUNCTION__); \
+            abort(); \
+        } \
+    } while(0)
+
+#else
+
+#define Assert(condition, message) ((void)0)
+
+#endif
+
+// Usage examples:
+Assert(playerEnergy >= 0, "Energy cannot be negative");
+Assert(playerVelocity >= 0 && playerVelocity <= 9, "Invalid velocity");
+Assert(galaxy != NULL, "Galaxy not initialized");
+
+VISUAL DEBUGGING:
+void RenderDebugVisuals() {
+    #ifdef DEBUG
+    if (!debugVisualsEnabled) return;
+    
+    // Draw collision bounds
+    for (enemy in currentSectorEnemies) {
+        DrawCircle(enemy.position, enemy.radius, RED, WIREFRAME);
+    }
+    
+    // Draw AI paths
+    for (squadron in enemySquadrons) {
+        if (squadron.path) {
+            for (i = 0; i < squadron.path.length - 1; i++) {
+                DrawLine(squadron.path[i], squadron.path[i+1], YELLOW);
+            }
+        }
+    }
+    
+    // Draw frustum
+    DrawFrustum(camera, GREEN);
+    
+    // Draw sector grid
+    DrawGrid(16, 16, CYAN);
+    
+    #endif
+}
+
+================================================================================
+END OF TECHNICAL IMPLEMENTATION NOTES
+Document Version: 1.0
+Last Updated: December 17, 2025
+Total Sections: 25
+Pages: ~30
+
+This document provides comprehensive technical implementation guidelines for
+Star Raiders. Use in conjunction with:
+
+Star_Raiders_PRD.md (game design specifications)
+
+QUICKSTART_DEVELOPER_GUIDE.md (quick reference)
+
+star_raiders_visual_mockups.txt (UI specifications)
+
+star_raiders_visual_reference.txt (visual design guide)
+
+TEAM_ROLES_AND_TASKS.md (team organization)
+
+================================================================================
+IMPLEMENTATION PRIORITY
+PHASE 1 - CORE ENGINE (Weeks 1-3):
+Priority 1:
+
+Game loop (60 FPS)
+
+State management system
+
+Input handling
+
+Basic rendering
+
+Priority 2:
+
+Galaxy generation
+
+Player movement
+
+Basic 3D projection
+
+HUD rendering
+
+Priority 3:
+
+Save/load system
+
+Audio system initialization
+
+Basic UI screens
+
+PHASE 2 - VISUAL SYSTEMS (Weeks 4-6):
+Priority 1:
+
+3D rendering pipeline
+
+Enemy sprite rendering
+
+Starfield parallax
+
+Priority 2:
+
+All 8 game screens
+
+HUD elements
+
+Visual effects (torpedoes, explosions)
+
+Priority 3:
+
+Particle system
+
+Screen transitions
+
+Polish animations
+
+PHASE 3 - GAMEPLAY MECHANICS (Weeks 7-9):
+Priority 1:
+
+Combat system (torpedoes, hits)
+
+Energy management
+
+PESCLR damage system
+
+Priority 2:
+
+Hyperspace navigation
+
+Starbase docking
+
+Collision detection
+
+Priority 3:
+
+Lock indicators
+
+Shield/computer systems
+
+System damage effects
+
+PHASE 4 - ENEMY AI (Weeks 10-11):
+Priority 1:
+
+Strategic AI (galaxy movement)
+
+Basic tactical AI
+
+Priority 2:
+
+Enemy type behaviors
+
+Starbase attack logic
+
+Difficulty scaling
+
+Priority 3:
+
+Group coordination
+
+Advanced behaviors
+
+AI optimization
+
+PHASE 5 - POLISH & TESTING (Weeks 12-13):
+Priority 1:
+
+Audio implementation
+
+Ranking system
+
+Bug fixes
+
+Priority 2:
+
+Balance tuning
+
+Performance optimization
+
+Accessibility features
+
+Priority 3:
+
+Final polish
+
+Documentation
+
+Build packaging
+
+================================================================================
+COMMON PITFALLS & SOLUTIONS
+PITFALL 1: Performance Issues
+Problem: Frame rate drops below 60 FPS
+Solutions:
+
+Implement object pooling for frequently created/destroyed objects
+
+Use spatial partitioning for collision detection
+
+Batch rendering (reduce draw calls)
+
+Profile to find bottlenecks
+
+Implement LOD system for distant objects
+
+PITFALL 2: State Management Complexity
+Problem: Game state becomes tangled and hard to debug
+Solutions:
+
+Use clear state machine pattern
+
+Document state transitions
+
+Keep states independent
+
+Use save/load to verify state integrity
+
+Add state validation functions
+
+PITFALL 3: AI Pathfinding Lag
+Problem: Enemy pathfinding causes stuttering
+Solutions:
+
+Spread pathfinding over multiple frames
+
+Use simple pathfinding (A* is overkill for 16×16 grid)
+
+Cache paths and reuse when possible
+
+Limit pathfinding frequency (every 1-2 seconds)
+
+PITFALL 4: Floating Point Precision
+Problem: Ship position drifts or becomes unstable
+Solutions:
+
+Use double precision for positions if needed
+
+Keep positions relative to sector origin
+
+Validate positions every frame
+
+Use epsilon comparisons for floating point
+
+PITFALL 5: Save File Corruption
+Problem: Save files become corrupted or incompatible
+Solutions:
+
+Add version numbers to save format
+
+Include checksums for validation
+
+Test save/load extensively
+
+Provide migration path for old saves
+
+Validate data on load
+
+PITFALL 6: Input Lag
+Problem: Controls feel unresponsive
+Solutions:
+
+Process input at start of frame
+
+Use fixed timestep for physics
+
+Minimize input → visual feedback delay
+
+Test on target hardware
+
+Profile input processing time
+
+PITFALL 7: Memory Leaks
+Problem: Memory usage grows over time
+Solutions:
+
+Use object pooling
+
+Profile memory usage
+
+Free resources properly
+
+Use smart pointers (C++) or proper malloc/free (C)
+
+Regular testing with memory tools (Valgrind, etc.)
+
+PITFALL 8: Audio Glitches
+Problem: Sound effects pop, crackle, or overlap badly
+Solutions:
+
+Use audio pooling (limit simultaneous sounds)
+
+Proper buffer sizes
+
+Mix audio properly (volume levels)
+
+Test on various audio hardware
+
+Use separate thread for audio (if applicable)
+
+================================================================================
+OPTIMIZATION TECHNIQUES
+CPU OPTIMIZATION:
+
+Data-Oriented Design:
+
+Keep related data together (cache-friendly)
+
+Use arrays of structs for entities
+
+Process in batches
+
+Avoid pointer chasing
+
+Early Exit:
+
+Check simple conditions first
+
+Return early from functions
+
+Skip unnecessary calculations
+
+Use short-circuit evaluation
+
+Reduce Allocations:
+
+Pre-allocate at startup
+
+Use object pooling
+
+Avoid dynamic allocation in hot paths
+
+Reuse buffers
+
+Efficient Algorithms:
+
+O(1) or O(log n) preferred
+
+Spatial partitioning for collision
+
+Binary search for sorted data
+
+Cache results when possible
+
+GPU OPTIMIZATION:
+
+Minimize Draw Calls:
+
+Batch rendering
+
+Use texture atlases
+
+Instance rendering
+
+Reduce state changes
+
+Optimize Shaders:
+
+Keep shaders simple
+
+Avoid branching in shaders
+
+Use LOD for complex effects
+
+Precompute when possible
+
+Texture Management:
+
+Use mipmaps
+
+Compress textures
+
+Appropriate texture sizes
+
+Unload unused textures
+
+MEMORY OPTIMIZATION:
+
+Reduce Footprint:
+
+Compress assets
+
+Use appropriate data types
+
+Pack structures (#pragma pack)
+
+Share resources
+
+Cache Efficiency:
+
+Data locality
+
+Sequential access
+
+Avoid false sharing
+
+Align data properly
+
+PROFILING CHECKLIST:
+
+☐ Measure frame time per system
+☐ Identify bottlenecks (CPU/GPU)
+☐ Check memory usage trends
+☐ Monitor allocation frequency
+☐ Profile on target hardware
+☐ Test worst-case scenarios
+☐ Optimize hot paths first
+☐ Verify optimizations with profiler
+
+================================================================================
+PLATFORM-SPECIFIC NOTES
+WINDOWS:
+
+Use DirectX or OpenGL for rendering
+
+Link against SDL2 or GLFW for window management
+
+Audio: XAudio2 or SDL_mixer
+
+File paths: Use backslashes or normalize
+
+Compiler: MSVC (Visual Studio) or MinGW (GCC)
+
+Distribution: Portable .exe or installer
+
+MAC:
+
+Use Metal or OpenGL for rendering
+
+SDL2 recommended for cross-platform
+
+Audio: Core Audio or SDL_mixer
+
+File paths: Forward slashes
+
+Compiler: Clang (Xcode)
+
+Universal binary: Intel + Apple Silicon
+
+Distribution: .app bundle or .dmg
+
+LINUX:
+
+Use OpenGL or Vulkan for rendering
+
+SDL2 for window management
+
+Audio: ALSA, PulseAudio, or SDL_mixer
+
+File paths: Forward slashes
+
+Compiler: GCC or Clang
+
+Package formats: AppImage, .deb, .rpm, Flatpak
+
+Distribution: Various package managers
+
+WEB (EMSCRIPTEN):
+
+Compile to WebAssembly
+
+Canvas or WebGL for rendering
+
+Web Audio API
+
+File system: Emscripten virtual FS
+
+Preload assets with --preload-file
+
+Memory limits: 2GB max (browser dependent)
+
+Performance: Slower than native
+
+MOBILE (FUTURE):
+
+Touch controls required
+
+Simplified UI for smaller screens
+
+Battery considerations
+
+Various screen sizes/aspect ratios
+
+App store requirements
+
+Platform-specific APIs (iOS/Android)
+
+================================================================================
+FINAL IMPLEMENTATION CHECKLIST
+CORE SYSTEMS:
+☐ Game loop running at 60 FPS
+☐ State management working
+☐ Input handling responsive
+☐ Rendering pipeline complete
+☐ Audio system functional
+☐ Save/load working
+☐ Galaxy generation correct
+☐ All 8 screens implemented
+
+GAMEPLAY:
+☐ Player movement smooth
+☐ Combat system working
+☐ Energy management functional
+☐ PESCLR damage system complete
+☐ Hyperspace navigation working
+☐ Starbase docking functional
+☐ All difficulty levels balanced
+☐ Ranking system accurate
+
+AI:
+☐ Strategic AI (galaxy level) working
+☐ Tactical AI (sector level) working
+☐ All 3 enemy types behave correctly
+☐ Difficulty scaling implemented
+☐ Starbase attack mechanics working
+☐ Group coordination functional
+
+POLISH:
+☐ All audio implemented
+☐ All visual effects working
+☐ UI responsive and clear
+☐ Performance optimized
+☐ No critical bugs
+☐ Accessibility features working
+☐ Documentation complete
+☐ Build process automated
+
+TESTING:
+☐ All features tested
+☐ All difficulty levels completable
+☐ Performance tested on target hardware
+☐ Save/load tested extensively
+☐ Cross-platform testing done
+☐ Accessibility tested
+☐ No memory leaks
+☐ Crash-free for extended play
