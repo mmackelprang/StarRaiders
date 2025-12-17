@@ -1,6 +1,6 @@
 # PROJECTPLAN – Star Raiders (Unity, C#)
 
-This plan breaks the Star Raiders clone into iterative phases sized for an AI coding assistant. Use Unity (C#) for all UI and gameplay systems. Always cross-reference the provided documents for fidelity: `README.md`, `Star_Raiders_PRD.md` (Sections noted per phase), `QUICKSTART_DEVELOPER_GUIDE.md`, `star_raiders_technical_notes.txt`, `star_raiders_visual_mockups.txt`, `star_raiders_visual_reference.txt`, and images in `/images`. (README references `TEAM_ROLES_AND_TASKS.md`; if available later, incorporate its role guidance.)
+This plan breaks the Star Raiders clone into iterative phases sized for an AI coding assistant. Use Unity (C#) for all UI and gameplay systems. Always cross-reference the provided documents for fidelity: `README.md`, `Star_Raiders_PRD.md` (Sections noted per phase), `QUICKSTART_DEVELOPER_GUIDE.md`, `star_raiders_technical_notes.txt`, `star_raiders_visual_mockups.txt`, `star_raiders_visual_reference.txt`. (README references `TEAM_ROLES_AND_TASKS.md`, but it is not present in this repository; incorporate it only if added later.)
 
 ## Conventions
 - Target: Unity 2022+ LTS, C# 10+, URP (or built-in pipeline if simpler). Use prefab-based UI, ScriptableObjects for data, and Input System package.
@@ -11,10 +11,10 @@ This plan breaks the Star Raiders clone into iterative phases sized for an AI co
 
 ## Phase 0 – Repository & Context Intake
 **Goal:** Ensure assistant uses canonical specs and assets.  
-**Tasks:** Read all context docs; note key sections for later; catalog `/images` for HUD/colors.  
+**Tasks:** Read all context docs; note key sections for later; confirm available visual assets (current `/images` folder is a placeholder).  
 **AI Agent Prompt:**  
 ```
-You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Raiders_PRD.md (focus Sections 5-20 for gameplay/controls/audio and 21-27 for visuals/performance/architecture/testing), QUICKSTART_DEVELOPER_GUIDE.md, star_raiders_technical_notes.txt, star_raiders_visual_mockups.txt, star_raiders_visual_reference.txt, and scan /images. Produce a short summary of constraints, required screens (8), controls, PESCLR rules, and performance targets. Do not write code.
+You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Raiders_PRD.md (focus Sections 5-20 for gameplay/controls/audio and 21-27 for visuals/performance/architecture/testing), QUICKSTART_DEVELOPER_GUIDE.md, star_raiders_technical_notes.txt, star_raiders_visual_mockups.txt, star_raiders_visual_reference.txt. Note that `/images` currently contains only a placeholder. Produce a short summary of constraints, required screens (8), controls, PESCLR rules, and performance targets. Do not write code.
 ```
 
 ## Phase 1 – Unity Project Setup
@@ -51,7 +51,7 @@ Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART_DEVELOPER_GUI
 
 ## Phase 5 – Rendering Foundations & HUD Shell
 **Goal:** Build camera rig, starfield, and HUD scaffolding.  
-**Tasks:** Set up cockpit camera with URP, starfield particle system, UI canvas with HUD placeholders (energy, system status, crosshair, speed). Use colors/layout from visual mockups/reference and `/images`.  
+**Tasks:** Set up cockpit camera with URP, starfield particle system, UI canvas with HUD placeholders (energy, system status, crosshair, speed). Use colors/layout from visual mockups/reference.  
 **AI Agent Prompt:**  
 ```
 Implement rendering baseline: cockpit camera, starfield particle effect, and HUD shell (energy meter, PESCLR indicators, crosshair, speed). Follow star_raiders_visual_mockups.txt and star_raiders_visual_reference.txt for layout/colors. Use Unity UI prefabs and TextMeshPro. No gameplay logic yet; just visual placeholders for integration.
@@ -110,7 +110,7 @@ Implement StarbaseSystem per PRD Section 14 and energy rules in Section 16. Supp
 **Tasks:** Title with difficulty selection; Galactic Chart overlay; Fore/Aft view; Long-Range Scan; Hyperspace view; Game Over; Ranking. Use visual mockups and `/images`.  
 **AI Agent Prompt:**  
 ```
-Build UI screens per PRD Sections 8-9 and star_raiders_visual_mockups.txt. Implement Title (difficulty selection), Galactic Chart overlay (G), Fore/Aft cockpits, Long-Range Scan (L), Hyperspace view (H), Game Over, Ranking screen with 20 titles. Wire key bindings and GameStateManager transitions. Keep visual fidelity to /images palette.
+Build UI screens per PRD Sections 8-9 and star_raiders_visual_mockups.txt. Implement Title (difficulty selection), Galactic Chart overlay (G), Fore/Aft cockpits, Long-Range Scan (L), Hyperspace view (H), Game Over, Ranking screen with 20 titles. Wire key bindings and GameStateManager transitions. Keep visual fidelity to star_raiders_visual_reference.txt palettes.
 ```
 
 ## Phase 13 – Audio System
