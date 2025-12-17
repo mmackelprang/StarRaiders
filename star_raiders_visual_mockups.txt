@@ -1,0 +1,1723 @@
+================================================================================
+STAR RAIDERS - VISUAL MOCKUPS AND UI SPECIFICATIONS
+================================================================================
+
+Version: 1.0
+Date: December 17, 2025
+Purpose: ASCII mockups and visual specifications for all game screens
+
+================================================================================
+TABLE OF CONTENTS
+================================================================================
+
+1. Color Palette Reference
+2. Typography Specifications
+3. Screen 1: Title Screen
+4. Screen 2: Galactic Chart
+5. Screen 3: Fore View (Combat)
+6. Screen 4: Aft View (Combat)
+7. Screen 5: Long-Range Scan
+8. Screen 6: Hyperspace View
+9. Screen 7: Game Over Screen
+10. Screen 8: Ranking Screen
+11. HUD Element Specifications
+12. Animation Sequences
+13. Visual Effects Guide
+14. Icon Reference
+
+================================================================================
+1. COLOR PALETTE REFERENCE
+================================================================================
+
+PRIMARY COLORS
+--------------
+Black (Space Background)     : #000000  RGB(0, 0, 0)
+White (Player/Text)          : #FFFFFF  RGB(255, 255, 255)
+Green (HUD Text)             : #00FF00  RGB(0, 255, 0)
+Red (Enemies/Danger)         : #FF0000  RGB(255, 0, 0)
+Blue (Starbases/Friendly)    : #0000FF  RGB(0, 0, 255)
+Cyan (System OK)             : #00FFFF  RGB(0, 255, 255)
+Yellow (Warning/Damaged)     : #FFFF00  RGB(255, 255, 0)
+Orange (Explosions)          : #FF8800  RGB(255, 136, 0)
+
+SECONDARY COLORS
+----------------
+Dark Gray (UI Elements)      : #333333  RGB(51, 51, 51)
+Light Gray (Disabled)        : #CCCCCC  RGB(204, 204, 204)
+Purple (Hyperspace)          : #FF00FF  RGB(255, 0, 255)
+Dark Blue (Space Depth)      : #000033  RGB(0, 0, 51)
+
+SYSTEM STATUS COLORS
+--------------------
+Operational (PESCLR)         : #00FFFF  Cyan
+Damaged (PESCLR)             : #FFFF00  Yellow
+Destroyed (PESCLR)           : #FF0000  Red
+
+STARFIELD COLORS
+----------------
+Bright Stars                 : #FFFFFF  White
+Medium Stars                 : #CCCCCC  Light Gray
+Dim Stars                    : #666666  Dark Gray
+Distant Stars                : #333333  Very Dark Gray
+
+================================================================================
+2. TYPOGRAPHY SPECIFICATIONS
+================================================================================
+
+PRIMARY FONT
+------------
+Style: Monospace / Fixed-Width (Atari-style)
+Recommended: "Courier New", "Consolas", "Monaco", or custom bitmap font
+Weight: Regular (400) for body, Bold (700) for emphasis
+Size: 12-16pt at 1080p resolution
+
+CHARACTER SET
+-------------
+Uppercase letters: A-Z
+Numbers: 0-9
+Symbols: : + - = / [ ] ( ) < > ⊕ ○ ■ ▲ ▼
+
+HUD TEXT SIZING
+---------------
+Large (Titles):        24pt
+Medium (Values):       16pt
+Small (Labels):        12pt
+Tiny (Indicators):     10pt
+
+ALIGNMENT
+---------
+HUD Elements:     Left-aligned (left side), Right-aligned (right side)
+Center Text:      Titles, Messages, Alerts
+Monospace Align:  Ensures consistent column alignment
+
+================================================================================
+3. SCREEN 1: TITLE SCREEN
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                                                                          │
+│                         ★  ★  ★  ★  ★  ★  ★                             │
+│                                                                          │
+│                      ███████╗████████╗ █████╗ ██████╗                   │
+│                      ██╔════╝╚══██╔══╝██╔══██╗██╔══██╗                  │
+│                      ███████╗   ██║   ███████║██████╔╝                  │
+│                      ╚════██║   ██║   ██╔══██║██╔══██╗                  │
+│                      ███████║   ██║   ██║  ██║██║  ██║                  │
+│                      ╚══════╝   ╚═╝   ╚═╝  ╚═╝╚═╝  ╚═╝                  │
+│                                                                          │
+│                      ██████╗  █████╗ ██╗██████╗ ███████╗██████╗ ███████╗│
+│                      ██╔══██╗██╔══██╗██║██╔══██╗██╔════╝██╔══██╗██╔════╝│
+│                      ██████╔╝███████║██║██║  ██║█████╗  ██████╔╝███████╗│
+│                      ██╔══██╗██╔══██║██║██║  ██║██╔══╝  ██╔══██╗╚════██║│
+│                      ██║  ██║██║  ██║██║██████╔╝███████╗██║  ██║███████║│
+│                      ╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚═════╝ ╚══════╝╚═╝  ╚═╝╚══════╝│
+│                                                                          │
+│                         ★  ★  ★  ★  ★  ★  ★                             │
+│                                                                          │
+│                                                                          │
+│                        SELECT DIFFICULTY LEVEL:                         │
+│                                                                          │
+│                          ▶ NOVICE                                       │
+│                            PILOT                                        │
+│                            WARRIOR                                      │
+│                            COMMANDER                                    │
+│                                                                          │
+│                                                                          │
+│                      [PRESS FIRE TO BEGIN MISSION]                      │
+│                                                                          │
+│                   * * * * * * * * * * * * * * * *                       │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+ANIMATED ELEMENTS:
+- Starfield scrolling slowly in background
+- Stars twinkling (random brightness changes)
+- Selected difficulty pulses/blinks
+- Cursor (▶) animates with selection
+
+COLOR NOTES:
+- Title: White (#FFFFFF) with cyan outline
+- Stars: White/Yellow/Cyan mix
+- Difficulty levels: Green (#00FF00)
+- Selected item: Yellow (#FFFF00) + brighter
+- Background: Black (#000000) with dark blue starfield
+
+================================================================================
+4. SCREEN 2: GALACTIC CHART
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ GALACTIC CHART                                    SECTOR: 07,12          │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│    0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F                       │
+│  ┌──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┬──┐                      │
+│ 0│  │  │  │RR│  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 1│  │  │  │R │  │  │  │BB│  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 2│  │BB│  │  │  │  │  │  │  │  │  │  │R │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 3│  │  │  │  │  │  │  │  │  │RR│  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 4│  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 5│  │  │  │  │  │  │  │  │  │  │  │  │  │  │BB│  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 6│  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 7│  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 8│  │  │  │  │  │  │  │RR│  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ 9│  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ A│  │  │  │  │  │  │  │  │  │  │  │RR│  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ B│  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤                      │
+│ C│  │  │  │  │  │>>│  │  │  │  │  │  │  │  │  │  │   V: 00  E: 5240    │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤   K: 03  T: --      │
+│ D│  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤   TIME: 0245        │
+│ E│  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  ├──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┼──┤   DC: PESCLR        │
+│ F│  │  │BB│  │  │  │  │  │  │  │  │  │  │  │  │  │                      │
+│  └──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┴──┘                      │
+│                                                                          │
+│  LEGEND:  >> = Player    BB = Starbase    R = Enemy    Blank = Empty    │
+│                                                                          │
+│  [G] CHART  [F] FORE  [A] AFT  [L] SCAN  [H] HYPERSPACE                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+GRID ELEMENTS:
+- Each cell: 16×16 pixel square (adjustable)
+- Grid lines: Dark gray (#333333)
+- Player cursor (>>): White (#FFFFFF), pulsing
+- Starbases (BB): Blue (#0000FF), solid
+- Enemies (R/RR): Red (#FF0000), R=single, RR=multiple
+- Empty sectors: Black (#000000)
+
+HUD ELEMENTS (Right Side):
+- V: Velocity (Green)
+- E: Energy (Green, Yellow if <1000, Red if <500)
+- K: Kills (Green)
+- T: Tracking target (Green, or -- if none)
+- TIME: Mission time in centons (Green)
+- DC: PESCLR: Damage Control status
+  - Letters in Cyan = Operational
+  - Letters in Yellow = Damaged
+  - Letters in Red = Destroyed
+
+ANIMATED ELEMENTS:
+- Player cursor blinks/pulses
+- Enemies slowly move between sectors
+- Starbase under attack: Flashing red border
+- Cursor moves with joystick input
+
+ALERT STATES:
+- Starbase surrounded: Flashing red around BB
+- Low energy: E value flashes red
+- Critical damage: Affected PESCLR letter flashes
+
+================================================================================
+5. SCREEN 3: FORE VIEW (COMBAT)
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ V: 06    E: 4250    K: 03    T: F                                        │
+│ ┌────────────────────────────────────────────────────────────────────┐   │
+│ │                    ·    ·        ·                                 │   │
+│ │        ·                                  ·         ·              │   │
+│ │   ·                       ▲                               ·        │   │
+│ │              ·           /█\          ·                            │   │
+│ │                         /███\                                      │   │
+│ │    ·                   /█████\              ▲                ·     │   │
+│ │                       /███████\            /█\                     │   │
+│ │           ·                              /███\         ·           │   │
+│ │                                         /█████\                    │   │
+│ │ ·                                                                  │   │
+│ │                                                         ·          │   │
+│ │        ·                                                           │   │
+│ │                  ═════════►                                  ·     │   │
+│ │    ·                                                               │   │
+│ │                          ·                     ·                   │   │
+│ │              ·                                              ·      │   │
+│ │   ·                                                                │   │
+│ │                    ·              ·                   ·            │   │
+│ └────────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+│           ○                 R: 45                    ○                   │
+│       (H-POS)                                     (V-POS)                │
+│                                                                          │
+│           ⊕                  ⊕                    ⊕                      │
+│        (H-LOCK)           (RANGE)              (V-LOCK)                  │
+│                                                                          │
+│ [S] SHIELDS: ON   [T] COMPUTER: ON   [F] FORE  [A] AFT  [G] CHART       │
+└──────────────────────────────────────────────────────────────────────────┘
+
+VISUAL ELEMENTS:
+
+STARFIELD:
+- Small dots (·) representing distant stars
+- Varying brightness: White, Light Gray, Dark Gray
+- Parallax scrolling based on velocity
+- More stars appear at higher speeds
+
+ENEMIES:
+Fighter (Small):
+    ▲
+   /█\
+  /███\
+
+Cruiser (Medium):
+    ▲
+   /█\
+  /███\
+ /█████\
+
+Basestar (Large):
+    ▲
+   /█\
+  /███\
+ /█████\
+/███████\
+
+COLOR CODING:
+- Red (#FF0000) for all enemy ships
+- Brighter red when closer
+- Dimmer/smaller when farther
+
+TORPEDO TRAIL:
+═════════► (White line with arrow head)
+- Animated movement toward target
+- Fades after 0.5 seconds
+
+POSITION INDICATORS:
+○ Horizontal Position (Left): Shows left/right alignment
+○ Vertical Position (Right): Shows up/down alignment
+- White circles (#FFFFFF)
+- Filled when aligned
+
+LOCK INDICATORS:
+⊕ Three crosshair symbols at bottom
+- Green (#00FF00) when locked
+- Gray (#666666) when not locked
+- All three green = optimal firing
+
+RANGE DISPLAY:
+R: 45 - Distance to target in metrons
+- Green: 30-70 (optimal range)
+- Yellow: 15-29 or 71-90 (acceptable)
+- Red: <15 or >90 (poor range)
+
+HUD STATUS (Top):
+V: Velocity (0-9, speed level)
+E: Energy (current value, color-coded)
+K: Kills (total destroyed)
+T: Tracking target (F=Fighter, C=Cruiser, B=Basestar)
+
+BOTTOM STATUS BAR:
+[S] SHIELDS: ON/OFF - Green when ON, Gray when OFF
+[T] COMPUTER: ON/OFF - Green when ON, Gray when OFF
+Navigation shortcuts displayed
+
+VISUAL EFFECTS:
+- Shield shimmer: Subtle blue glow around screen edges when active
+- Hit flash: Screen flash red when taking damage
+- Explosion: Expanding orange/red circle with debris
+- Screen shake: Brief shake on collision
+
+================================================================================
+6. SCREEN 4: AFT VIEW (COMBAT)
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ V: 09    E: 3820    K: 05    T: F                                        │
+│ ┌────────────────────────────────────────────────────────────────────┐   │
+│ │  ·                                           ·                     │   │
+│ │             ·                    ·                                 │   │
+│ │                                                      ·             │   │
+│ │      ·                                                             │   │
+│ │                                                                    │   │
+│ │                          ▼                                   ·     │   │
+│ │             ·           \█/                                        │   │
+│ │                        \███/              ·                        │   │
+│ │   ·                   \█████/                                      │   │
+│ │                      \███████/                           ·         │   │
+│ │                                  ·                                 │   │
+│ │                                                                    │   │
+│ │         ·                                                    ·     │   │
+│ │                                           ▼                        │   │
+│ │                                          \█/                 ·     │   │
+│ │    ·                                    \███/                      │   │
+│ │                                        \█████/                     │   │
+│ │              ·                                         ·           │   │
+│ │                           ·                                        │   │
+│ └────────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+│           ○                 R: 62                    ○                   │
+│       (H-POS)                                     (V-POS)                │
+│                                                                          │
+│           ⊕                  ⊕                    ⊕                      │
+│        (H-LOCK)           (RANGE)              (V-LOCK)                  │
+│                                                                          │
+│ [S] SHIELDS: ON   [T] COMPUTER: ON   [F] FORE  [A] AFT  [G] CHART       │
+└──────────────────────────────────────────────────────────────────────────┘
+
+DIFFERENCES FROM FORE VIEW:
+- Enemies shown inverted (▼ instead of ▲)
+- Torpedoes fire backward
+- Used for checking pursuers
+- T: indicator shows "R" (Rear) when targeting aft enemies
+- Higher velocity creates more dramatic star streaming effect
+
+TACTICAL USE:
+- Escape while fighting
+- Monitor threats during retreat
+- Defend against pursuing enemies
+
+================================================================================
+7. SCREEN 5: LONG-RANGE SCAN
+================================================================================
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│ LONG-RANGE SECTOR SCAN                           SECTOR: 07,12          │
+├──────────────────────────────────────────────────────────────────────────┤
+│                                                                          │
+│                           RANGE CIRCLES                                  │
+│                                                                          │
+│                  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                           │
+│              ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                         │
+│           ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                      │
+│         ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                     │
+│       ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                    │
+│     ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                   │
+│    ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                 │
+│   ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                  │
+│  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                │
+│  ·  ·  ·  ·  · F ·  ·  ·  ▲  ·  ·  ·  ·  ·  ·  ·  ·  ·                  │
+│  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  · C ·  ·  ·  ·  ·                  │
+│   ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                  │
+│    ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                 │
+│     ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                   │
+│       ·  ·  ·  ·  ·  ·  · F ·  ·  ·  ·  ·  ·  ·  ·  ·                   │
+│         ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                     │
+│           ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                      │
+│              ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                         │
+│                  ·  ·  ·  ·  ·  ·  ·  ·  ·  ·                           │
+│                                                                          │
+│                                                     V: 00  E: 4250       │
+│  LEGEND:                                            K: 03  T: F          │
+│  ▲ = Player (You)          F = Fighter                                  │
+│  C = Cruiser               B = Basestar             ENEMIES: 3           │
+│  · = Range Markers (10 metron intervals)                                │
+│                                                                          │
+│  [L] SCAN  [F] FORE  [A] AFT  [G] CHART                                 │
+└──────────────────────────────────────────────────────────────────────────┘
+
+VISUAL ELEMENTS:
+
+PLAYER SHIP:
+▲ - White triangle at center (always center)
+
+ENEMIES:
+F - Fighter (Red)
+C - Cruiser (Orange/Red)
+B - Basestar (Bright Red)
+
+RANGE CIRCLES:
+- Concentric dotted circles
+- Each ring = 10 metrons
+- 5-7 circles typically visible
+- Gray dots (#666666)
+
+POSITION:
+- Top-down 2D view
+- Player always at center
+- Enemies at relative positions
+- Distance proportional to screen position
+
+DAMAGE EFFECTS (When L system damaged):
+- Yellow damage: 1-2 ghost ships appear (false echoes)
+  Example: "F?" in different color (dimmer)
+- Red damage: Complete static, unusable
+  Screen fills with noise/random characters
+
+COLOR CODING:
+- Player: White (#FFFFFF)
+- Fighters: Red (#FF0000)
+- Cruisers: Orange (#FF8800)
+- Basestars: Bright Red (#FF3333)
+- Range circles: Gray (#666666)
+
+TACTICAL USE:
+- Assess combat situation
+- Locate enemies not in visual range
+- Plan approach vector
+- Determine if sector is clear
+
+================================================================================
+8. SCREEN 6: HYPERSPACE VIEW
+================================================================================
+
+AUTOMATIC HYPERSPACE (Novice/Pilot):
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                                                                          │
+│                                                                          │
+│                      ║ ║ ║ ║ ║ ║ ║ ║ ║                                 │
+│                    ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                               │
+│                  ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                             │
+│                ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                           │
+│              ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                         │
+│            ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                       │
+│          ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                     │
+│        ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                   │
+│      ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                 │
+│    ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║               │
+│  ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║             │
+│ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║          │
+│  ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║             │
+│    ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║               │
+│      ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                 │
+│        ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                   │
+│          ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                     │
+│            ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                       │
+│              ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                         │
+│                                                                          │
+│              HYPERSPACE TO SECTOR: 0B,05                                 │
+│                    PROGRESS: ████████░░ 80%                              │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+ANIMATION:
+- Star lines (║) stream from center outward
+- Colors cycle: White → Cyan → Purple → White
+- Speed increases toward edges
+- Tunnel effect creates depth
+- Progress bar fills left to right
+
+---
+
+MANUAL HYPERSPACE (Warrior/Commander):
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                      ║ ║ ║ ║ ║ ║ ║ ║ ║                                 │
+│                    ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                               │
+│                  ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                             │
+│                ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                           │
+│              ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                         │
+│            ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                       │
+│          ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                     │
+│        ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                   │
+│      ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                 │
+│    ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ╳ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║               │
+│  ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ⊕ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║             │
+│ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║          │
+│  ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║             │
+│    ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║               │
+│      ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                 │
+│        ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                   │
+│          ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                     │
+│            ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                       │
+│              ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║ ║                         │
+│                                                                          │
+│         KEEP CROSSHAIRS CENTERED!          DESTINATION: 0B,05            │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+ELEMENTS:
+⊕ = Target reticle (Green, center of screen, stationary)
+╳ = Ship crosshair (White, drifts, player must center it)
+
+DRIFT MECHANICS:
+- Crosshair (╳) randomly drifts up/down/left/right
+- Player uses joystick to recenter it over target (⊕)
+- Must maintain within ±10% tolerance
+- Failure = arrive at wrong sector
+
+VISUAL FEEDBACK:
+- Crosshair Green = centered correctly
+- Crosshair Yellow = slightly off-center (warning)
+- Crosshair Red = too far off (will fail)
+- Turbulence effects (screen shake) increase drift
+
+================================================================================
+9. SCREEN 7: GAME OVER SCREEN
+================================================================================
+
+VICTORY:
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                                                                          │
+│                                                                          │
+│                                                                          │
+│                     ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★                               │
+│                                                                          │
+│                     ███╗   ███╗██╗███████╗███████╗██╗ ██████╗ ███╗   ██╗│
+│                     ████╗ ████║██║██╔════╝██╔════╝██║██╔═══██╗████╗  ██║│
+│                     ██╔████╔██║██║███████╗███████╗██║██║   ██║██╔██╗ ██║│
+│                     ██║╚██╔╝██║██║╚════██║╚════██║██║██║   ██║██║╚██╗██║│
+│                     ██║ ╚═╝ ██║██║███████║███████║██║╚██████╔╝██║ ╚████║│
+│                     ╚═╝     ╚═╝╚═╝╚══════╝╚══════╝╚═╝ ╚═════╝ ╚═╝  ╚═══╝│
+│                                                                          │
+│                      ██████╗ ██████╗ ███╗   ███╗██████╗ ██╗     ███████╗│
+│                     ██╔════╝██╔═══██╗████╗ ████║██╔══██╗██║     ██╔════╝│
+│                     ██║     ██║   ██║██╔████╔██║██████╔╝██║     █████╗  │
+│                     ██║     ██║   ██║██║╚██╔╝██║██╔═══╝ ██║     ██╔══╝  │
+│                     ╚██████╗╚██████╔╝██║ ╚═╝ ██║██║     ███████╗███████╗│
+│                      ╚═════╝ ╚═════╝ ╚═╝     ╚═╝╚═╝     ╚══════╝╚══════╝│
+│                                                                          │
+│                     ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★                               │
+│                                                                          │
+│                      ALL ZYLON FORCES DESTROYED!                         │
+│                                                                          │
+│                                                                          │
+│                    [PRESS FIRE FOR MISSION RATING]                       │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+---
+
+DEFEAT (All Starbases Destroyed):
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                                                                          │
+│                                                                          │
+│                                                                          │
+│                       ╔═══════════════════════════════╗                  │
+│                       ║                               ║                  │
+│                       ║      MISSION FAILED           ║                  │
+│                       ║                               ║                  │
+│                       ║   ALL STARBASES DESTROYED     ║                  │
+│                       ║                               ║                  │
+│                       ║   THE GALAXY HAS FALLEN       ║                  │
+│                       ║   TO THE ZYLON EMPIRE         ║                  │
+│                       ║                               ║                  │
+│                       ╚═══════════════════════════════╝                  │
+│                                                                          │
+│                                                                          │
+│                         ENEMIES REMAINING: 12                            │
+│                         TIME SURVIVED: 0347 CENTONS                      │
+│                                                                          │
+│                                                                          │
+│                    [PRESS FIRE FOR MISSION RATING]                       │
+│                                                                          │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+---
+
+DEFEAT (Ship Destroyed):
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                                                                          │
+│                                                                          │
+│                                                                          │
+│                       ╔═══════════════════════════════╗                  │
+│                       ║                               ║                  │
+│                       ║      MISSION FAILED           ║                  │
+│                       ║                               ║                  │
+│                       ║   STARSHIP DESTROYED          ║                  │
+│                       ║                               ║                  │
+│                       ║   CRITICAL SYSTEMS FAILURE    ║                  │
+│                       ║                               ║                  │
+│                       ╚═══════════════════════════════╝                  │
+│                                                                          │
+│                                                                          │
+│                         ENEMIES DESTROYED: 08                            │
+│                         TIME SURVIVED: 0521 CENTONS                      │
+│                                                                          │
+│                                                                          │
+│                    [PRESS FIRE FOR MISSION RATING]                       │
+│                                                                          │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+COLOR NOTES:
+- Victory: Green text (#00FF00), gold stars (#FFD700)
+- Defeat: Red text (#FF0000), red border
+- Background: Black (#000000) with dim starfield
+
+ANIMATION:
+- Victory: Stars sparkle, text pulses
+- Defeat: Dim red pulse, somber effect
+- Both: Prompt blinks awaiting input
+
+================================================================================
+10. SCREEN 8: RANKING SCREEN
+================================================================================
+
+HIGH RANK EXAMPLE (Star Commander):
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                   MISSION PERFORMANCE EVALUATION                         │
+│                                                                          │
+│ ┌────────────────────────────────────────────────────────────────────┐   │
+│ │                                                                    │   │
+│ │  MISSION PARAMETERS:                                               │   │
+│ │  ───────────────────                                               │   │
+│ │  Difficulty Level:       COMMANDER                                 │   │
+│ │  Starting Enemy Forces:  28 Ships                                  │   │
+│ │  Starting Starbases:     2                                         │   │
+│ │                                                                    │   │
+│ │  PERFORMANCE METRICS:                                              │   │
+│ │  ────────────────────                                              │   │
+│ │  Enemies Destroyed:      28 / 28        ████████████████  100%    │   │
+│ │  Starbases Remaining:    2  / 2         ████████████████  100%    │   │
+│ │  Energy Efficiency:      EXCELLENT                                 │   │
+│ │  Time Taken:             0412 Centons                              │   │
+│ │  Damage Sustained:       MINIMAL                                   │   │
+│ │                                                                    │   │
+│ │  SCORE CALCULATION:                                                │   │
+│ │  ──────────────────                                                │   │
+│ │  Base Score:             +180 pts                                  │   │
+│ │  Difficulty Bonus:       +90 pts  (Commander ×2.0)                 │   │
+│ │  Starbase Bonus:         +40 pts  (2 saved)                        │   │
+│ │  Efficiency Bonus:       +25 pts                                   │   │
+│ │  ─────────────────────────────────                                 │   │
+│ │  TOTAL SCORE:            335 pts                                   │   │
+│ │                                                                    │   │
+│ └────────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+│                                                                          │
+│                  ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★                          │
+│                                                                          │
+│                        YOUR RANK:                                        │
+│                                                                          │
+│                   ╔═════════════════════════════╗                        │
+│                   ║                             ║                        │
+│                   ║    STAR COMMANDER           ║                        │
+│                   ║         CLASS 4             ║                        │
+│                   ║                             ║                        │
+│                   ╚═════════════════════════════╝                        │
+│                                                                          │
+│                  ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★ ★                          │
+│                                                                          │
+│                                                                          │
+│              [PRESS FIRE TO RETURN TO TITLE SCREEN]                      │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+---
+
+LOW RANK EXAMPLE (Garbage Scow Captain):
+
+┌──────────────────────────────────────────────────────────────────────────┐
+│                                                                          │
+│                   MISSION PERFORMANCE EVALUATION                         │
+│                                                                          │
+│ ┌────────────────────────────────────────────────────────────────────┐   │
+│ │                                                                    │   │
+│ │  MISSION PARAMETERS:                                               │   │
+│ │  ───────────────────                                               │   │
+│ │  Difficulty Level:       NOVICE                                    │   │
+│ │  Starting Enemy Forces:  10 Ships                                  │   │
+│ │  Starting Starbases:     4                                         │   │
+│ │                                                                    │   │
+│ │  PERFORMANCE METRICS:                                              │   │
+│ │  ────────────────────                                              │   │
+│ │  Enemies Destroyed:      2  / 10        ████░░░░░░░░░░░░   20%    │   │
+│ │  Starbases Remaining:    0  / 4         ░░░░░░░░░░░░░░░░   0%     │   │
+│ │  Energy Efficiency:      POOR                                      │   │
+│ │  Time Taken:             0891 Centons                              │   │
+│ │  Damage Sustained:       CRITICAL                                  │   │
+│ │                                                                    │   │
+│ │  SCORE CALCULATION:                                                │   │
+│ │  ──────────────────                                                │   │
+│ │  Base Score:             +20 pts                                   │   │
+│ │  Difficulty Bonus:       +0 pts   (Novice ×1.0)                    │   │
+│ │  Starbase Penalty:       -40 pts  (All lost)                       │   │
+│ │  Efficiency Penalty:     -15 pts                                   │   │
+│ │  ─────────────────────────────────                                 │   │
+│ │  TOTAL SCORE:            -35 pts                                   │   │
+│ │                                                                    │   │
+│ └────────────────────────────────────────────────────────────────────┘   │
+│                                                                          │
+│                                                                          │
+│                          YOUR RANK:                                      │
+│                                                                          │
+│                   ╔═════════════════════════════╗                        │
+│                   ║                             ║                        │
+│                   ║   GARBAGE SCOW CAPTAIN      ║                        │
+│                   ║                             ║                        │
+│                   ║  (Try a lower difficulty)   ║                        │
+│                   ║                             ║                        │
+│                   ╚═════════════════════════════╝                        │
+│                                                                          │
+│                                                                          │
+│              [PRESS FIRE TO RETURN TO TITLE SCREEN]                      │
+│                                                                          │
+└──────────────────────────────────────────────────────────────────────────┘
+
+RANKING TITLES (All 20):
+Score 0-47:     GALACTIC COOK / GARBAGE SCOW CAPTAIN
+Score 48-79:    ROOKIE
+Score 80-111:   NOVICE
+Score 112-143:  ENSIGN
+Score 144-175:  PILOT
+Score 176-207:  ACE
+Score 208-239:  LIEUTENANT
+Score 240-271:  WARRIOR
+Score 272-303:  CAPTAIN
+Score 304-335:  COMMANDER
+Score 336+:     STAR COMMANDER (Class 1-4)
+
+COLOR CODING:
+- High ranks (Commander+): Gold/Yellow text (#FFD700)
+- Medium ranks (Pilot-Captain): Green text (#00FF00)
+- Low ranks (Rookie-Ensign): White text (#FFFFFF)
+- Failure ranks: Red text (#FF0000)
+
+================================================================================
+11. HUD ELEMENT SPECIFICATIONS
+================================================================================
+
+VELOCITY INDICATOR:
+Format: V: XX
+Range: 00-09
+Color: Green (#00FF00)
+Position: Top-left
+Size: 16pt
+
+ENERGY INDICATOR:
+Format: E: XXXX
+Range: 0000-7000
+Color: Green (#00FF00) when >1000
+       Yellow (#FFFF00) when 500-1000
+       Red (#FF0000) when <500, flashing when <100
+Position: Top-left (next to V:)
+Size: 16pt
+
+KILLS COUNTER:
+Format: K: XX
+Range: 00-99
+Color: Green (#00FF00)
+Position: Top-right
+Size: 16pt
+
+TRACKING INDICATOR:
+Format: T: X
+Values: F (Fighter), C (Cruiser), B (Basestar), -- (None)
+Color: Green (#00FF00)
+Position: Top-right (next to K:)
+Size: 16pt
+
+RANGE DISPLAY:
+Format: R: XXX
+Range: 000-999 metrons
+Color: Green (30-70), Yellow (15-29, 71-90), Red (<15, >90)
+Position: Bottom-center
+Size: 14pt
+
+LOCK INDICATORS:
+Symbol: ⊕ (crosshair)
+Count: 3 (Horizontal, Range, Vertical)
+Color: Green (#00FF00) when locked, Gray (#666666) when not
+Position: Bottom (left, center, right)
+Size: 20pt
+
+POSITION INDICATORS:
+Symbol: ○ (circle)
+Count: 2 (Horizontal left, Vertical right)
+Color: White (#FFFFFF), filled when aligned
+Position: Mid-screen sides
+Size: 18pt
+
+PESCLR STATUS:
+Format: DC: PESCLR
+Color: Cyan (operational), Yellow (damaged), Red (destroyed)
+Position: Bottom-right of Galactic Chart
+Size: 12pt
+Layout: P E S C L R (spaced letters)
+
+SYSTEM STATUS DISPLAY:
+Format: [S] SHIELDS: ON/OFF   [T] COMPUTER: ON/OFF
+Color: Green when ON, Gray when OFF
+Position: Bottom of screen
+Size: 12pt
+
+================================================================================
+12. ANIMATION SEQUENCES
+================================================================================
+
+TORPEDO FIRE SEQUENCE:
+Frame 1: Muzzle flash at ship position (bright white circle)
+Frame 2: Torpedo appears (white line, 10 pixels long)
+Frame 3-10: Torpedo extends (═════════►), moves toward target
+Frame 11: Hit detection
+Frame 12: If hit - explosion; if miss - torpedo fades out
+Duration: ~0.5 seconds total
+
+EXPLOSION SEQUENCE:
+Frame 1: Bright white flash at impact point
+Frame 2: Orange circle expands (radius 10px)
+Frame 3: Orange circle expands (radius 20px), turns red
+Frame 4: Red circle expands (radius 30px), adds debris (small dots)
+Frame 5: Debris spreads outward, circle fades
+Frame 6-8: Debris continues spreading, fading to black
+Duration: ~1.0 second total
+
+HYPERSPACE ENTRY:
+Frame 1-5: Stars begin stretching into lines
+Frame 6-10: Lines accelerate outward
+Frame 11-20: Full warp tunnel effect
+Frame 21-25: Deceleration, lines shorten
+Frame 26-30: Return to normal starfield
+Duration: ~3-5 seconds total
+
+SHIELD ACTIVATION:
+Frame 1: Blue glow appears at screen edges
+Frame 2-3: Glow pulses brighter
+Frame 4+: Steady shimmer effect (subtle pulse)
+Continuous: While shields active
+
+DAMAGE FLASH:
+Frame 1: Screen flash red (50% opacity)
+Frame 2: Screen shake (2 pixels random direction)
+Frame 3: Red flash fades
+Frame 4: Return to normal
+Duration: ~0.2 seconds
+
+STARBASE UNDER ATTACK ALERT:
+Frame 1-10: Starbase icon flashes red (on)
+Frame 11-20: Starbase icon normal (off)
+Repeat: Until threat cleared or starbase destroyed
+Frequency: 1 blink per second
+
+ENEMY MOVEMENT (Galactic Chart):
+Frame 1: Enemy in sector (X,Y)
+Frame 2-30: Slow fade/transition animation
+Frame 31: Enemy in adjacent sector
+Duration: 2-3 seconds per move
+Frequency: Every 10-20 centons (game time)
+
+LOCK INDICATOR ANIMATION:
+Unlocked: Gray ⊕ symbol (static)
+Locking: Yellow ⊕ symbol (pulsing)
+Locked: Green ⊕ symbol (solid, slight pulse)
+Transition: 0.3 seconds
+
+================================================================================
+13. VISUAL EFFECTS GUIDE
+================================================================================
+
+STARFIELD PARALLAX:
+- Layer 1 (Near): Large white dots, scroll speed 100%
+- Layer 2 (Mid): Medium gray dots, scroll speed 50%
+- Layer 3 (Far): Small dark gray dots, scroll speed 25%
+- Layer 4 (Distant): Tiny dim dots, scroll speed 10%
+- Direction: Based on ship velocity and heading
+- Density: 100-200 stars visible at any time
+
+SHIELD SHIMMER EFFECT:
+- Translucent blue overlay at screen edges
+- Opacity: 20-30% (semi-transparent)
+- Animation: Subtle wave pattern moving inward
+- Frequency: 2-3 waves per second
+- Intensity increases when taking hits
+
+SCREEN SHAKE (Damage):
+- Displacement: ±2-4 pixels random direction
+- Duration: 1-3 frames (0.017-0.05 seconds)
+- Trigger: Any damage received
+- Severity scales with damage amount
+
+TORPEDO TRAIL:
+- Base: White line (═══════)
+- Head: Bright arrow (►)
+- Tail: Fading gradient (white → gray → transparent)
+- Length: 40-60 pixels
+- Speed: 50 metrons/second visual
+- Glow: Slight bloom effect around trail
+
+EXPLOSION DEBRIS:
+- Particles: 8-12 small triangles/squares
+- Color: Orange (#FF8800) → Red (#FF0000) → Dark Gray (#333333)
+- Velocity: Radial outward from explosion center
+- Lifespan: 0.5-1.0 seconds
+- Rotation: Random spin on each particle
+
+HYPERSPACE TUNNEL:
+- Star streaks: Vertical lines stretching from center
+- Colors: White → Cyan → Purple → Magenta (cycling)
+- Speed: Accelerates during entry, decelerates at exit
+- Density: Increases toward edges (tunnel effect)
+- Glow: Bloom effect on bright streaks
+
+ENEMY APPROACH/RETREAT:
+- Scale: Enemy size increases as distance decreases
+- Max size: 60×60 pixels (very close)
+- Min size: 4×4 pixels (distant)
+- Smoothing: Linear interpolation between positions
+- Rotation: Slight banking when turning
+
+LOW ENERGY WARNING:
+- Effect: Energy value flashes red
+- Frequency: 2 flashes per second when E < 500
+- Increase: 4 flashes per second when E < 100
+- Audio: Accompanying beep tone
+
+CRITICAL SYSTEM DAMAGE:
+- Effect: Damaged PESCLR letter flashes
+- Color: Yellow ↔ Red (alternating)
+- Frequency: 1 flash per second
+- Indicator: Visual alert in HUD
+
+GALACTIC CHART CURSOR:
+- Symbol: >> (double chevron)
+- Color: White (#FFFFFF)
+- Animation: Pulse brightness (75% → 100% → 75%)
+- Frequency: 1 pulse per second
+- Movement: Smooth interpolation between sectors
+
+DOCKING SEQUENCE:
+- Frame 1-5: Starbase grows larger (approaching)
+- Frame 6: White flash (docking confirmation)
+- Frame 7-10: Fade to black
+- Frame 11: "DOCKED AT STARBASE" message
+- Frame 12: Transition to Galactic Chart
+- Duration: ~2 seconds total
+
+SYSTEM REPAIR ANIMATION (at Starbase):
+- Each PESCLR letter sequentially changes:
+  Red → Yellow → Cyan (0.2 second per letter)
+- Accompanied by "repair" sound effect
+- Energy bar fills simultaneously
+- Total duration: ~1.5 seconds
+
+================================================================================
+14. ICON REFERENCE
+================================================================================
+
+ENEMY SHIP ICONS (3D View):
+
+Fighter (Close):
+    ▲
+   /█\
+  /███\
+ /█████\
+
+Fighter (Medium):
+   ▲
+  /█\
+ /███\
+
+Fighter (Distant):
+  ▲
+ /█\
+
+---
+
+Cruiser (Close):
+     ▲
+    /█\
+   /███\
+  /█████\
+ /███████\
+/█████████\
+
+Cruiser (Medium):
+    ▲
+   /█\
+  /███\
+ /█████\
+
+Cruiser (Distant):
+   ▲
+  /█\
+ /███\
+
+---
+
+Basestar (Close):
+      ▲
+     /█\
+    /███\
+   /█████\
+  /███████\
+ /█████████\
+/███████████\
+
+Basestar (Medium):
+     ▲
+    /█\
+   /███\
+  /█████\
+ /███████\
+
+Basestar (Distant):
+    ▲
+   /█\
+  /███\
+ /█████\
+
+---
+
+GALACTIC CHART ICONS:
+
+Player Position:
+  >>  (Double chevron, white, animated pulse)
+
+Starbase:
+  BB  (Two B letters, blue #0000FF)
+
+Enemy Single:
+  R   (Single R, red #FF0000)
+
+Enemy Multiple:
+  RR  (Double R, red #FF0000)
+
+Enemy Squadron (3+):
+  RRR (Triple R, red #FF0000)
+
+Empty Sector:
+  (blank space)
+
+---
+
+HUD SYMBOLS:
+
+Lock Indicator (Locked):
+  ⊕  (Crosshair, green #00FF00)
+
+Lock Indicator (Unlocked):
+  ⊕  (Crosshair, gray #666666)
+
+Position Indicator (Aligned):
+  ●  (Filled circle, white #FFFFFF)
+
+Position Indicator (Not Aligned):
+  ○  (Empty circle, white #FFFFFF)
+
+Torpedo:
+  ═════════►  (Line with arrow, white #FFFFFF)
+
+Explosion:
+  ※  (Star burst symbol, orange/red)
+
+---
+
+STATUS INDICATORS:
+
+System Operational:
+  Letter in CYAN (#00FFFF)
+  Example: P (photon torpedoes operational)
+
+System Damaged:
+  Letter in YELLOW (#FFFF00)
+  Example: E (engines damaged)
+
+System Destroyed:
+  Letter in RED (#FF0000)
+  Example: S (shields destroyed)
+
+Shield Active:
+  [████] (Bracket indicators at screen edges, blue glow)
+
+Shield Inactive:
+  [░░░░] (Bracket indicators, gray)
+
+Computer Active:
+  [COMP: ON] (Green text)
+
+Computer Inactive:
+  [COMP: --] (Gray text)
+
+---
+
+PROGRESS BARS:
+
+Energy Bar (Full):
+  ████████████████  100%
+
+Energy Bar (Half):
+  ████████░░░░░░░░   50%
+
+Energy Bar (Low):
+  ███░░░░░░░░░░░░░   20%
+
+Energy Bar (Critical):
+  █░░░░░░░░░░░░░░░    5%  (Flashing red)
+
+---
+
+Hyperspace Progress:
+  ████████░░░░░░░░   50%  (Fills left to right)
+
+Mission Completion:
+  ████████████████  100%  (All enemies destroyed)
+
+================================================================================
+15. SCREEN RESOLUTION & SCALING
+================================================================================
+
+BASE RESOLUTION: 1920×1080 (16:9)
+
+ELEMENT SCALING TABLE:
+┌─────────────────────┬──────────┬──────────┬──────────┬──────────┐
+│ Element             │  720p    │  1080p   │  1440p   │  2160p   │
+├─────────────────────┼──────────┼──────────┼──────────┼──────────┤
+│ HUD Text Size       │   12pt   │   16pt   │   20pt   │   32pt   │
+│ Title Text Size     │   18pt   │   24pt   │   32pt   │   48pt   │
+│ Grid Cell Size      │   12px   │   16px   │   20px   │   32px   │
+│ Enemy Max Size      │   40px   │   60px   │   80px   │  120px   │
+│ Torpedo Length      │   30px   │   40px   │   50px   │   80px   │
+│ Icon Size           │   16px   │   24px   │   32px   │   48px   │
+│ Explosion Radius    │   20px   │   30px   │   40px   │   60px   │
+└─────────────────────┴──────────┴──────────┴──────────┴──────────┘
+
+SAFE AREAS:
+- HUD Elements: 5% margin from screen edges
+- Title Text: 10% margin from top
+- Interactive Elements: 8% margin from edges
+- Ensures visibility on all displays including overscan
+
+ASPECT RATIO SUPPORT:
+16:9 (Primary):    1920×1080, 1280×720, 2560×1440, 3840×2160
+16:10 (Secondary): 1920×1200, 1680×1050
+4:3 (Legacy):      1024×768, 1280×1024 (letterboxed)
+
+SCALING MODES:
+- Pixel Perfect: Integer scaling only (2×, 3×, 4×)
+- Smooth: Bilinear filtering for arbitrary scales
+- Fit to Screen: Maintain aspect ratio, add letterboxing
+- Stretch: Fill screen (not recommended, distorts gameplay)
+
+================================================================================
+16. COLOR BLINDNESS ACCESSIBILITY
+================================================================================
+
+DEUTERANOPIA MODE (Red-Green):
+Standard          →  Deuteranopia
+─────────────────────────────────
+Red (#FF0000)     →  Orange (#FF6600)
+Green (#00FF00)   →  Yellow (#FFFF00)
+Cyan (#00FFFF)    →  Blue (#0088FF)
+Blue (#0000FF)    →  Dark Blue (#0000AA)
+
+PROTANOPIA MODE (Red-Green):
+Standard          →  Protanopia
+─────────────────────────────────
+Red (#FF0000)     →  Yellow (#FFAA00)
+Green (#00FF00)   →  Cyan (#00FFAA)
+Cyan (#00FFFF)    →  Light Blue (#00CCFF)
+Blue (#0000FF)    →  Blue (#0000FF) (unchanged)
+
+TRITANOPIA MODE (Blue-Yellow):
+Standard          →  Tritanopia
+─────────────────────────────────
+Blue (#0000FF)    →  Cyan (#00FFFF)
+Yellow (#FFFF00)  →  Pink (#FF88FF)
+Cyan (#00FFFF)    →  White (#FFFFFF)
+Red (#FF0000)     →  Red (#FF0000) (unchanged)
+
+HIGH CONTRAST MODE:
+- All text: White (#FFFFFF) on pure black (#000000)
+- Enemies: Bright Red (#FF3333) with white outline
+- Starbases: Bright Cyan (#00FFFF) with white outline
+- Player: Bright Yellow (#FFFF00) with white outline
+- HUD: Green (#00FF00) increased to 100% brightness
+- Grid lines: White (#FFFFFF) at 50% opacity
+
+ADDITIONAL ACCESSIBILITY:
+- Symbol shapes differ (not just color)
+  - Enemies: Triangles pointing up
+  - Starbases: Squares
+  - Player: Circle or chevron
+- Pattern fills as alternative to color
+- Audio cues for all visual alerts
+- Text labels for all icons (toggle option)
+
+================================================================================
+17. ANIMATION FRAME RATES
+================================================================================
+
+TARGET FRAME RATE: 60 FPS (16.67ms per frame)
+
+ANIMATION SPEEDS:
+┌─────────────────────────┬─────────┬──────────┬───────────┐
+│ Animation               │  FPS    │ Duration │ Frames    │
+├─────────────────────────┼─────────┼──────────┼───────────┤
+│ Torpedo Fire            │   60    │  0.5s    │    30     │
+│ Explosion               │   60    │  1.0s    │    60     │
+│ Hyperspace Entry        │   60    │  3.0s    │   180     │
+│ Shield Pulse            │   30    │  Loop    │   Cont.   │
+│ Lock Indicator Pulse    │   30    │  Loop    │   Cont.   │
+│ Cursor Blink            │   2     │  Loop    │   Cont.   │
+│ Energy Warning Flash    │   4     │  Loop    │   Cont.   │
+│ Damage Flash            │   60    │  0.2s    │    12     │
+│ Enemy Movement (Chart)  │   30    │  2.0s    │    60     │
+│ Starfield Scroll        │   60    │  Loop    │   Cont.   │
+│ Screen Shake            │   60    │  0.05s   │     3     │
+│ Docking Sequence        │   30    │  2.0s    │    60     │
+│ Repair Animation        │   30    │  1.5s    │    45     │
+└─────────────────────────┴─────────┴──────────┴───────────┘
+
+PERFORMANCE OPTIMIZATION:
+- Particle pooling: Reuse explosion/debris objects
+- Sprite batching: Draw all similar objects in one call
+- Culling: Don't render off-screen elements
+- LOD: Reduce detail on distant objects
+- Frame skip: Allow 30 FPS fallback on slow hardware
+
+================================================================================
+18. UI LAYOUT GRID SYSTEM
+================================================================================
+
+SCREEN DIVIDED INTO 12×8 GRID:
+
+┌───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┬───┐
+│ 1 │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │10 │11 │12 │ Row 1 (Top HUD)
+├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+│   │   │   │   │   │   │   │   │   │   │   │   │ Row 2
+├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+│   │   │   │   │   │   │   │   │   │   │   │   │ Row 3
+├───┼───┼───┼───┼───┴───┴───┴───┴───┴───┼───┼───┤
+│   │   │   │   │                       │   │   │ Row 4 (Main View)
+├───┼───┼───┼───┤   GAMEPLAY AREA       ├───┼───┤
+│   │   │   │   │                       │   │   │ Row 5
+├───┼───┼───┼───┤                       ├───┼───┤
+│   │   │   │   │                       │   │   │ Row 6
+├───┼───┼───┼───┼───┬───┬───┬───┬───┬───┼───┼───┤
+│   │   │   │   │   │   │   │   │   │   │   │   │ Row 7
+├───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┼───┤
+│   │   │   │   │   │   │   │   │   │   │   │   │ Row 8 (Bottom HUD)
+└───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┴───┘
+HUD ELEMENT POSITIONS:
+- V: Velocity → Grid (1,1)
+- E: Energy → Grid (2-3,1)
+- K: Kills → Grid (10,1)
+- T: Tracking → Grid (11-12,1)
+- Left Position Indicator → Grid (1,4)
+- Right Position Indicator → Grid (12,4)
+- Range Display → Grid (6-7,6)
+- Lock Indicators → Grid (4,7), (6-7,7), (9,7)
+- Status Bar → Grid (1-12,8)
+
+GALACTIC CHART LAYOUT:
+- Title → Grid (1-6,1)
+- Sector Coords → Grid (10-12,1)
+- 16×16 Grid → Grid (1-10, 2-7)
+- HUD Info → Grid (11-12, 3-7)
+- Legend → Grid (1-12,8)
+
+TITLE SCREEN LAYOUT:
+- Title → Grid (4-9, 2-4)
+- Difficulty Options → Grid (5-8, 5-6)
+- Start Prompt → Grid (4-9, 7)
+
+================================================================================
+19. TYPOGRAPHY HIERARCHY
+================================================================================
+
+LEVEL 1 - GAME TITLE:
+Size: 48pt (at 1080p)
+Weight: Bold
+Case: UPPERCASE
+Color: White with cyan outline
+Use: Title screen, major headings
+Example: "STAR RAIDERS"
+
+LEVEL 2 - SCREEN TITLES:
+Size: 24pt
+Weight: Bold
+Case: UPPERCASE
+Color: White
+Use: Screen headers (Galactic Chart, Mission Complete)
+Example: "GALACTIC CHART"
+
+LEVEL 3 - SECTION HEADERS:
+Size: 18pt
+Weight: Bold
+Case: UPPERCASE
+Color: Green
+Use: Subheadings, category labels
+Example: "MISSION PARAMETERS"
+
+LEVEL 4 - HUD LABELS:
+Size: 16pt
+Weight: Regular
+Case: UPPERCASE
+Color: Green (or status color)
+Use: HUD elements (V:, E:, K:, T:)
+Example: "V: 06    E: 4250"
+
+LEVEL 5 - BODY TEXT:
+Size: 14pt
+Weight: Regular
+Case: Mixed
+Color: White or Green
+Use: Messages, descriptions
+Example: "Keep crosshairs centered!"
+
+LEVEL 6 - SMALL TEXT:
+Size: 12pt
+Weight: Regular
+Case: Mixed
+Color: Light Gray
+Use: Legends, help text, footnotes
+Example: "Press [F] for Fore View"
+
+LETTER SPACING:
+- Title: +2px
+- Headers: +1px
+- HUD: 0px (monospace)
+- Body: 0px
+
+LINE HEIGHT:
+- Title: 1.0 (tight)
+- Headers: 1.2
+- Body: 1.5
+- HUD: 1.0 (compact)
+
+================================================================================
+20. SOUND EFFECT VISUAL CUES
+================================================================================
+
+When implementing audio, coordinate with these visual cues:
+
+TORPEDO FIRE:
+Visual: Muzzle flash
+Audio: "PEW" laser sound
+Timing: Simultaneous with flash
+
+EXPLOSION:
+Visual: Expanding orange circle
+Audio: "BOOM" explosion sound
+Timing: Start with first frame of explosion
+
+HYPERSPACE ENGAGE:
+Visual: Stars begin stretching
+Audio: Rising "WHOOOOSH" sound
+Timing: Start as animation begins
+
+HYPERSPACE EXIT:
+Visual: Stars return to normal
+Audio: Descending "WOOSH" sound
+Timing: End as animation completes
+
+SHIELD ACTIVATION:
+Visual: Blue shimmer appears
+Audio: "BWOOM" power-up sound
+Timing: Simultaneous with shimmer
+
+DAMAGE TAKEN:
+Visual: Red screen flash
+Audio: "CLANG" impact sound
+Timing: Simultaneous with flash
+
+LOW ENERGY WARNING:
+Visual: Flashing red E: value
+Audio: "BEEP BEEP" alarm
+Timing: Sync beeps with flashes (2 Hz)
+
+CRITICAL ENERGY:
+Visual: Fast flashing red E: value
+Audio: "BEEPBEEPBEEP" rapid alarm
+Timing: Sync beeps with flashes (4 Hz)
+
+STARBASE ALERT:
+Visual: Flashing starbase icon
+Audio: "BOOP BOOP" alert tone
+Timing: Sync with icon flashes (1 Hz)
+
+SYSTEM DAMAGED:
+Visual: PESCLR letter turns yellow/red
+Audio: "BZZT" static/error sound
+Timing: When letter changes color
+
+LOCK ACHIEVED:
+Visual: ⊕ turns green
+Audio: "PING" confirmation tone
+Timing: When lock indicator changes
+
+DOCKING:
+Visual: White flash
+Audio: "CLUNK" docking sound
+Timing: On white flash frame
+
+ENEMY DESTROYED:
+Visual: Explosion animation
+Audio: "BOOM" + debris sounds
+Timing: Explosion start + debris scatter
+
+VELOCITY CHANGE:
+Visual: V: value changes
+Audio: Engine pitch change
+Timing: Gradual pitch shift over 0.5s
+
+================================================================================
+21. FINAL IMPLEMENTATION NOTES
+================================================================================
+
+RENDERING ORDER (Back to Front):
+1. Background (black)
+2. Starfield (parallax layers 4→1)
+3. Distant enemies (small)
+4. Mid-range enemies (medium)
+5. Torpedo trails
+6. Close enemies (large)
+7. Explosions
+8. Shield effects
+9. Position indicators
+10. HUD elements
+11. Lock indicators
+12. Screen flashes (damage)
+13. UI overlays (menus)
+
+Z-INDEX VALUES:
+- Background: 0
+- Starfield Layer 4: 10
+- Starfield Layer 3: 20
+- Starfield Layer 2: 30
+- Starfield Layer 1: 40
+- Enemies (distance-based): 50-80
+- Torpedoes: 85
+- Explosions: 90
+- Shield effects: 95
+- HUD base: 100
+- Lock indicators: 105
+- Status messages: 110
+- Screen effects: 120
+- UI overlays: 130
+
+SPRITE SHEET LAYOUT:
+Recommended organization for efficient rendering:
+- Sheet 1: Enemy ships (all sizes/types)
+- Sheet 2: UI elements (icons, symbols)
+- Sheet 3: Effects (explosions, shields, torpedoes)
+- Sheet 4: Font atlas (all characters)
+- Sheet 5: Backgrounds (starfields, charts)
+
+TEXTURE SIZES:
+- Enemies: 128×128 per sprite
+- Effects: 256×256 per animation frame
+- UI Elements: 64×64 per icon
+- Font Atlas: 1024×1024 (all characters)
+- Background: Full screen resolution
+
+ALPHA BLENDING:
+- Shields: Additive blend (glow effect)
+- Explosions: Additive blend (bright)
+- Torpedoes: Additive blend (trail glow)
+- HUD: Alpha blend (semi-transparent backgrounds)
+- Screen flashes: Multiplicative blend (color overlay)
+
+PERFORMANCE BUDGET (at 60 FPS):
+- Rendering: 10ms max
+- Game logic: 4ms max
+- Physics/Collision: 2ms max
+- Audio: 1ms max
+- Buffer time: 0.67ms
+Total: 16.67ms per frame
+
+DRAW CALL OPTIMIZATION:
+- Batch all UI elements: 1 draw call
+- Batch all enemies by type: 3 draw calls max
+- Batch all starfield layers: 4 draw calls
+- Effects pooling: Reuse objects
+Target: < 20 draw calls per frame
+
+MEMORY FOOTPRINT:
+- Textures: ~50MB
+- Audio: ~20MB
+- Game state: ~5MB
+- Code/Assets: ~25MB
+Total: ~100MB maximum
+
+================================================================================
+22. RESPONSIVE DESIGN BREAKPOINTS
+================================================================================
+
+ULTRA-WIDE (21:9) - 2560×1080, 3440×1440:
+- Extend starfield horizontally
+- Keep HUD at 16:9 safe area
+- Add extra space on sides
+- Center gameplay area
+
+STANDARD (16:9) - 1920×1080, 2560×1440, 3840×2160:
+- Native layout (primary target)
+- No adjustments needed
+- Optimal experience
+
+WIDESCREEN (16:10) - 1920×1200, 1680×1050:
+- Slight letterboxing (top/bottom)
+- Maintain 16:9 aspect for gameplay
+- 5% black bars
+
+LEGACY (4:3) - 1024×768, 1280×1024:
+- Significant letterboxing
+- Maintain 16:9 aspect for gameplay
+- ~12% black bars (sides or top/bottom)
+
+MOBILE (PORTRAIT):
+- Not recommended for original design
+- If implemented: Rotate prompts or simplified UI
+- Consider touch controls overlay
+
+MOBILE (LANDSCAPE):
+- Acceptable but cramped on small screens
+- Minimum 7" tablet recommended
+- Touch controls replace keyboard
+- Simplified HUD (smaller text, fewer details)
+
+SCALING GUIDELINES:
+- Below 720p: Use pixel-perfect scaling (2×)
+- 720p-1080p: Use smooth scaling
+- Above 1080p: Use high-DPI assets
+- Always maintain 16:9 gameplay aspect ratio
+
+================================================================================
+23. QUALITY SETTINGS
+================================================================================
+
+ULTRA SETTINGS:
+- Resolution: Native (up to 4K)
+- Particle Count: Unlimited
+- Particle Quality: High (complex sprites)
+- Starfield Density: Maximum (200 stars)
+- Effects: All enabled (bloom, glow, motion blur)
+- Anti-aliasing: 8× MSAA
+- V-Sync: Enabled
+- Frame Rate: 60 FPS locked
+
+HIGH SETTINGS:
+- Resolution: Native
+- Particle Count: 500 max
+- Particle Quality: Medium
+- Starfield Density: High (150 stars)
+- Effects: Most enabled (bloom, glow)
+- Anti-aliasing: 4× MSAA
+- V-Sync: Enabled
+- Frame Rate: 60 FPS target
+
+MEDIUM SETTINGS:
+- Resolution: Native or 1080p
+- Particle Count: 250 max
+- Particle Quality: Low (simple sprites)
+- Starfield Density: Medium (100 stars)
+- Effects: Basic (no bloom)
+- Anti-aliasing: 2× MSAA
+- V-Sync: Optional
+- Frame Rate: 60 FPS target, 30 FPS acceptable
+
+LOW SETTINGS:
+- Resolution: 720p
+- Particle Count: 100 max
+- Particle Quality: Minimal (solid colors)
+- Starfield Density: Low (50 stars)
+- Effects: Disabled
+- Anti-aliasing: None
+- V-Sync: Disabled
+- Frame Rate: 30 FPS target
+
+PERFORMANCE MODE:
+- Resolution: 720p or lower
+- Particle Count: 50 max
+- Particle Quality: None (disable explosions detail)
+- Starfield Density: Minimal (25 stars)
+- Effects: All disabled
+- Anti-aliasing: None
+- V-Sync: Disabled
+- Frame Rate: Uncapped (maximize FPS)
+
+================================================================================
+24. LOCALIZATION CONSIDERATIONS
+================================================================================
+
+TEXT EXPANSION ALLOWANCES:
+English (base) → Other languages can be 30-50% longer
+
+SCREEN AREAS AFFECTED:
+- HUD labels (V:, E:, K:, T:) - Keep abbreviated
+- Button prompts ([F] FORE VIEW) - May need resizing
+- Status messages - Allow word wrapping
+- Rank titles - May need smaller font
+- Tutorial text - Plan for longer text blocks
+
+INTERNATIONAL SYMBOLS:
+- Use Unicode for special characters
+- Ensure font includes: ⊕ ○ ● ▲ ▼ ► ║ ═ ★
+- Test rendering on all target platforms
+
+RIGHT-TO-LEFT LANGUAGES:
+- Mirror UI layout for Arabic, Hebrew
+- Keep HUD positions consistent (numbers)
+- Reverse text alignment
+
+FONT REQUIREMENTS:
+- Support Latin Extended (European languages)
+- Support Cyrillic (Russian, Ukrainian)
+- Support CJK if targeting Asian markets
+- Monospace for HUD consistency
+
+================================================================================
+25. DEVELOPMENT CHECKLIST
+================================================================================
+
+VISUAL IMPLEMENTATION:
+☐ Create color palette constants
+☐ Design sprite sheets for enemies
+☐ Design UI icon set
+☐ Create animation sprite sheets
+☐ Implement starfield parallax system
+☐ Implement 3D vector rendering for enemies
+☐ Create explosion particle system
+☐ Implement torpedo trail rendering
+☐ Design HUD layout system
+☐ Create galactic chart grid renderer
+☐ Implement screen transition effects
+☐ Add shield shimmer effect
+☐ Add damage flash effect
+☐ Implement hyperspace tunnel animation
+☐ Create all 8 game screens
+☐ Test all visual effects at 60 FPS
+☐ Optimize draw calls
+☐ Implement colorblind modes
+☐ Test on all target resolutions
+☐ Add quality settings options
+☐ Profile and optimize performance
+
+VISUAL POLISH:
+☐ Add screen shake on damage
+☐ Add glow/bloom effects
+☐ Smooth all animations
+☐ Add motion blur (optional)
+☐ Polish explosion effects
+☐ Enhance lock indicator feedback
+☐ Add subtle background animations
+☐ Polish all UI transitions
+☐ Add loading screen
+☐ Add splash screen
+☐ Test visual clarity
+☐ Ensure readability at all scales
+
+================================================================================
+END OF VISUAL MOCKUPS SPECIFICATION
+================================================================================
+
+Document Version: 1.0
+Last Updated: December 17, 2025
+Total Sections: 25
+Pages: ~15
+
+This document provides complete visual specifications for implementing
+Star Raiders. Use in conjunction with:
+- Star_Raiders_PRD.md (game mechanics)
+- star_raiders_technical_notes.txt (implementation)
+- QUICKSTART_DEVELOPER_GUIDE.md (quick reference)
+
+For questions or clarifications, refer to the main PRD or contact the
+design lead.
+
+================================================================================
+
