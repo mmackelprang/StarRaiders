@@ -43,9 +43,20 @@ You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Ra
 Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPro, set default quality to 60 FPS target, configure Assembly Definitions per feature folder, and create a Bootstrap scene with GameManagers (GameState, Audio, Input). Update README with run instructions if needed. Follow PRD Section 23 (Technical Architecture) and the QUICKSTART_DEVELOPER_GUIDE.md Performance Targets section.
 ```
 
-## Phase 2 – Core Game Loop & State Management
+## Phase 2 – Core Game Loop & State Management 📝 DOCUMENTED
 **Goal:** Establish deterministic loop and state transitions.  
 **Tasks:** Implement GameStateManager (Title, Playing, Paused, GameOver, Hyperspace), scene loading, pause handling, timers; hook to UI events.  
+**Status:** 📝 Documented - See PHASE2_GAME_LOOP_GUIDE.md for complete implementation guide  
+**Deliverables:**
+- Expanded GameStateManager with full state machine (5 states)
+- State transition validation logic
+- CentonTimer system (100 centons ≈ 1 minute)
+- Pause/Resume functionality with Time.timeScale management
+- DebugStateDisplay UI for visualization
+- EditMode tests with 10+ test cases
+- Event system for state changes, pause, and hyperspace
+- Scene loading integration
+
 **AI Agent Prompt:**  
 ```
 Implement GameStateManager in Unity per PRD Sections 6 and 23. States: Title, Playing, Paused, Hyperspace, GameOver. Provide events for state changes, pause/resume, hyperspace start/end. Add simple UI to display current state for smoke testing. Include EditMode tests for transitions.
