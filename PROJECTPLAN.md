@@ -14,7 +14,7 @@ This plan breaks the Star Raiders clone into iterative phases sized for an AI co
 **Tasks:** Read all context docs; note key sections for later; catalog `/images` for HUD/colors.  
 **AI Agent Prompt:**  
 ```
-You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Raiders_PRD.md (focus Sections 5-15 for gameplay systems and 21-27 for visuals/performance/testing), QUICKSTART_DEVELOPER_GUIDE.md, star_raiders_technical_notes.txt, star_raiders_visual_mockups.txt, star_raiders_visual_reference.txt, and scan /images. Produce a short summary of constraints, required screens (8), controls, PESCLR rules, and performance targets. Do not write code.
+You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Raiders_PRD.md (focus Sections 5-20 for gameplay/controls/audio and 21-27 for visuals/performance/architecture/testing), QUICKSTART_DEVELOPER_GUIDE.md, star_raiders_technical_notes.txt, star_raiders_visual_mockups.txt, star_raiders_visual_reference.txt, and scan /images. Produce a short summary of constraints, required screens (8), controls, PESCLR rules, and performance targets. Do not write code.
 ```
 
 ## Phase 1 – Unity Project Setup
@@ -22,7 +22,7 @@ You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Ra
 **Tasks:** Initialize Unity URP project; configure source control ignores; add Input System, TextMeshPro; set base scene and folders (`Scripts`, `Prefabs`, `Scenes`, `ScriptableObjects`, `UI`, `Audio`, `Tests`).  
 **AI Agent Prompt:**  
 ```
-Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPro, set default quality to 60 FPS target, configure Assembly Definitions per feature folder, and create a Bootstrap scene with GameManagers (GameState, Audio, Input). Update README with run instructions if needed. Follow PRD Section 23 (Technical Architecture) and QUICKSTART Section 9 (Performance Targets).
+Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPro, set default quality to 60 FPS target, configure Assembly Definitions per feature folder, and create a Bootstrap scene with GameManagers (GameState, Audio, Input). Update README with run instructions if needed. Follow PRD Section 23 (Technical Architecture) and QUICKSTART_DEVELOPER_GUIDE.md Section 9 (Performance Targets).
 ```
 
 ## Phase 2 – Core Game Loop & State Management
@@ -91,7 +91,7 @@ Implement PesclrSystem per PRD Section 11 and QUICKSTART Section 6. Track states
 
 ## Phase 10 – Enemy AI & Galaxy Activity
 **Goal:** Enemy spawning, movement, and behaviors.  
-**Tasks:** Implement AI behaviors for Fighters, Cruisers, Basestars (movement, attack, evasion), group coordination, starbase attack countdown (100 centons), difficulty scaling. Update galaxy map in real time.  
+**Tasks:** Implement AI behaviors for Fighters, Cruisers, Basestars (movement, attack, evasion), group coordination, starbase attack countdown (100-centon), difficulty scaling. Update galaxy map in real time.  
 **AI Agent Prompt:**  
 ```
 Develop EnemyAI per PRD Section 13 and technical_notes Sections 5-6. Include per-type behaviors, group coordination, starbase targeting with 100-centon countdowns, and difficulty multipliers (speed, aggression). Integrate with GalaxyModel updates. Add PlayMode simulations verifying countdown triggers and basic pursuit.
