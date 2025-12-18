@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { GameStateManager, GameStateType } from '@systems/GameStateManager';
+import { GalaxyManager } from '@systems/GalaxyManager';
 import { DifficultyLevel } from '@utils/Constants';
 import { Debug } from '@utils/Debug';
 
@@ -169,7 +170,6 @@ export class TitleScene extends Phaser.Scene {
     gameStateManager.startNewGame(difficulty);
 
     // Initialize galaxy
-    const GalaxyManager = require('@systems/GalaxyManager').GalaxyManager;
     const galaxyManager = GalaxyManager.getInstance();
     galaxyManager.initializeGalaxy(difficulty);
 
