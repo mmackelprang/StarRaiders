@@ -204,6 +204,18 @@ export class GalacticChartScene extends Phaser.Scene {
     this.inputManager.on(InputAction.HYPERSPACE, () => {
       this.initiateHyperspace();
     });
+
+    // DEBUG: Test GameOver screens with V key (Victory) and D key (Defeat)
+    if (this.input.keyboard) {
+      this.input.keyboard.on('keydown-V', () => {
+        console.log('DEBUG: Testing Victory screen');
+        this.scene.start('GameOver', { reason: 'VICTORY' });
+      });
+      this.input.keyboard.on('keydown-D', () => {
+        console.log('DEBUG: Testing Defeat screen');
+        this.scene.start('GameOver', { reason: 'STARBASES_DESTROYED' });
+      });
+    }
   }
 
   private moveCursor(dx: number, dy: number): void {
