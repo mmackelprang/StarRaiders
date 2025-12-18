@@ -427,4 +427,29 @@ export class LongRangeScanScene extends Phaser.Scene {
       }
     }
   }
+  
+  shutdown(): void {
+    // Clean up all text objects to prevent memory leaks and WebGL errors
+    for (const marker of this.enemyMarkers) {
+      marker.destroy();
+    }
+    this.enemyMarkers = [];
+    
+    for (const marker of this.falseEchoMarkers) {
+      marker.destroy();
+    }
+    this.falseEchoMarkers = [];
+    
+    for (const label of this.rangeLabels) {
+      label.destroy();
+    }
+    this.rangeLabels = [];
+    
+    // Remove input listeners
+    this.inputManager.off(InputAction.LONG_RANGE_SCAN);
+    this.inputManager.off(InputAction.VIEW_FORE);
+    this.inputManager.off(InputAction.VIEW_AFT);
+    this.inputManager.off(InputAction.GALACTIC_CHART);
+    this.inputManager.off(InputAction.HYPERSPACE);
+  }
 }

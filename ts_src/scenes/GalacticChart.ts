@@ -302,4 +302,16 @@ export class GalacticChartScene extends Phaser.Scene {
     
     this.hudText.setText(hudContent);
   }
+  
+  shutdown(): void {
+    // Remove input listeners to prevent memory leaks
+    this.inputManager.off(InputAction.NAV_UP);
+    this.inputManager.off(InputAction.NAV_DOWN);
+    this.inputManager.off(InputAction.NAV_LEFT);
+    this.inputManager.off(InputAction.NAV_RIGHT);
+    this.inputManager.off(InputAction.GALACTIC_CHART);
+    this.inputManager.off(InputAction.VIEW_FORE);
+    this.inputManager.off(InputAction.LONG_RANGE_SCAN);
+    this.inputManager.off(InputAction.HYPERSPACE);
+  }
 }
