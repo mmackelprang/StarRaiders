@@ -712,8 +712,8 @@ export class CombatViewScene extends Phaser.Scene {
           this.torpedoGraphics.push(graphics);
         } else {
           graphics = this.torpedoGraphics[this.torpedoGraphicsIndex];
-          graphics.clear();
         }
+        graphics.clear(); // Always clear before use
         this.torpedoGraphicsIndex++;
         
         // Calculate torpedo endpoint (for trail effect)
@@ -766,6 +766,30 @@ export class CombatViewScene extends Phaser.Scene {
     if (this.explosionManager) {
       this.explosionManager.destroy();
     }
+    
+    // Clean up torpedo graphics pool
+    for (const graphics of this.torpedoGraphics) {
+      graphics.destroy();
+    }
+    this.torpedoGraphics = [];
+    
+    // Clean up lock indicator labels
+    for (const label of this.lockLabels) {
+      label.destroy();
+    }
+    this.lockLabels = [];
+    
+    // Clean up position indicator labels
+    for (const label of this.positionLabels) {
+      label.destroy();
+    }
+    this.positionLabels = [];
+    
+    // Clean up PESCLR text objects
+    for (const text of this.pesclrTexts) {
+      text.destroy();
+    }
+    this.pesclrTexts = [];
     
     // Remove event listeners
     this.events.off('torpedoHit');
