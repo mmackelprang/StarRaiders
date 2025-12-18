@@ -46,9 +46,9 @@ This comprehensive project plan breaks down the Star Raiders recreation into 18 
 | 1 | Build System & Core Config | ✅ Completed | Phase 0 | 2-3 hours |
 | 2 | Game Loop & State Machine | ✅ Completed | Phase 1 | 3-4 hours |
 | 3 | Input System | ✅ Completed | Phase 2 | 2-3 hours |
-| 4 | Galaxy Data Model | ⬜ Not Started | Phase 2 | 3-4 hours |
-| 5 | Starfield & Basic Rendering | ⬜ Not Started | Phase 2 | 3-4 hours |
-| 6 | Galactic Chart Screen | ⬜ Not Started | Phases 4, 5 | 4-5 hours |
+| 4 | Galaxy Data Model | ✅ Completed | Phase 2 | 3-4 hours |
+| 5 | Starfield & Basic Rendering | ✅ Completed | Phase 2 | 3-4 hours |
+| 6 | Galactic Chart Screen | ✅ Completed | Phases 4, 5 | 4-5 hours |
 | 7 | Title & UI Screens | ⬜ Not Started | Phases 3, 5 | 3-4 hours |
 | 8 | 3D Vector Rendering | ⬜ Not Started | Phase 5 | 4-5 hours |
 | 9 | Fore/Aft Combat Views | ⬜ Not Started | Phases 3, 8 | 4-5 hours |

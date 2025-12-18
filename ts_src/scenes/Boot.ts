@@ -33,9 +33,9 @@ export class BootScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.input.keyboard?.once('keydown', () => {
-      Debug.log('Key pressed, starting game...');
-      // Will transition to Title scene in Phase 7
-      // For now, just log
+      Debug.log('Key pressed, starting galactic chart test...');
+      // Transition to GalacticChartTest for Phase 6 testing
+      this.scene.start('GalacticChartTest');
     });
   }
 }

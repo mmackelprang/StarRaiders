@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import { BootScene } from '@scenes/Boot';
+import { StarfieldTestScene } from '@scenes/StarfieldTest';
+import { GalacticChartTestScene } from '@scenes/GalacticChartTest';
+import { GalacticChartScene } from '@scenes/GalacticChart';
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -21,5 +24,5 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     target: 60,
     forceSetTimeOut: true
   },
-  scene: [BootScene]  // Will add more scenes in later phases
+  scene: [BootScene, StarfieldTestScene, GalacticChartTestScene, GalacticChartScene]  // Will add more scenes in later phases
 };

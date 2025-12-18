@@ -8,7 +8,7 @@
 
 ## Phase 4 – Galaxy Data Model
 
-### Status: ⬜ Not Started
+### Status: ✅ Completed
 
 ### Dependencies
 - Phase 2 completed (Game State Manager)
@@ -510,7 +510,7 @@ describe('GalaxyManager', () => {
 
 ## Phase 5 – Starfield & Basic Rendering
 
-### Status: ⬜ Not Started
+### Status: ✅ Completed
 
 ### Dependencies
 - Phase 2 completed (Game Loop)
@@ -718,7 +718,7 @@ export class StarfieldManager {
 
 ## Phase 6 – Galactic Chart Screen
 
-### Status: ⬜ Not Started
+### Status: ✅ Completed
 
 ### Dependencies
 - Phase 4 completed (Galaxy Data)
