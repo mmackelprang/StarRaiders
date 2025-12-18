@@ -1,0 +1,46 @@
+{
+  "NOVICE": {
+    "name": "Novice",
+    "enemyCount": 10,
+    "starbaseCount": 4,
+    "fighterPercentage": 0.6,
+    "cruiserPercentage": 0.3,
+    "basestarPercentage": 0.1,
+    "shieldStrength": 1.0,
+    "enemyAggression": 0.5,
+    "hyperspaceManual": false
+  },
+  "PILOT": {
+    "name": "Pilot",
+    "enemyCount": 15,
+    "starbaseCount": 3,
+    "fighterPercentage": 0.6,
+    "cruiserPercentage": 0.3,
+    "basestarPercentage": 0.1,
+    "shieldStrength": 0.8,
+    "enemyAggression": 0.7,
+    "hyperspaceManual": false
+  },
+  "WARRIOR": {
+    "name": "Warrior",
+    "enemyCount": 20,
+    "starbaseCount": 2,
+    "fighterPercentage": 0.6,
+    "cruiserPercentage": 0.3,
+    "basestarPercentage": 0.1,
+    "shieldStrength": 0.5,
+    "enemyAggression": 0.9,
+    "hyperspaceManual": true
+  },
+  "COMMANDER": {
+    "name": "Commander",
+    "enemyCount": 28,
+    "starbaseCount": 2,
+    "fighterPercentage": 0.6,
+    "cruiserPercentage": 0.3,
+    "basestarPercentage": 0.1,
+    "shieldStrength": 0.3,
+    "enemyAggression": 1.0,
+    "hyperspaceManual": true
+  }
+}
