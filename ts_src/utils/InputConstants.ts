@@ -1,0 +1,27 @@
+import Phaser from 'phaser';
+
+export const DEFAULT_KEY_NAMES: { [key: number]: string } = {
+  [Phaser.Input.Keyboard.KeyCodes.ZERO]: '0',
+  [Phaser.Input.Keyboard.KeyCodes.ONE]: '1',
+  [Phaser.Input.Keyboard.KeyCodes.TWO]: '2',
+  [Phaser.Input.Keyboard.KeyCodes.THREE]: '3',
+  [Phaser.Input.Keyboard.KeyCodes.FOUR]: '4',
+  [Phaser.Input.Keyboard.KeyCodes.FIVE]: '5',
+  [Phaser.Input.Keyboard.KeyCodes.SIX]: '6',
+  [Phaser.Input.Keyboard.KeyCodes.SEVEN]: '7',
+  [Phaser.Input.Keyboard.KeyCodes.EIGHT]: '8',
+  [Phaser.Input.Keyboard.KeyCodes.NINE]: '9',
+  [Phaser.Input.Keyboard.KeyCodes.F]: 'F',
+  [Phaser.Input.Keyboard.KeyCodes.A]: 'A',
+  [Phaser.Input.Keyboard.KeyCodes.G]: 'G',
+  [Phaser.Input.Keyboard.KeyCodes.L]: 'L',
+  [Phaser.Input.Keyboard.KeyCodes.H]: 'H',
+  [Phaser.Input.Keyboard.KeyCodes.T]: 'T',
+  [Phaser.Input.Keyboard.KeyCodes.S]: 'S',
+  [Phaser.Input.Keyboard.KeyCodes.SPACE]: 'SPACE',
+  [Phaser.Input.Keyboard.KeyCodes.ESC]: 'ESC',
+  [Phaser.Input.Keyboard.KeyCodes.UP]: '↑',
+  [Phaser.Input.Keyboard.KeyCodes.DOWN]: '↓',
+  [Phaser.Input.Keyboard.KeyCodes.LEFT]: '←',
+  [Phaser.Input.Keyboard.KeyCodes.RIGHT]: '→',
+};

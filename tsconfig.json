@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM"],
+    "moduleResolution": "bundler",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "rootDir": "./ts_src",
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["ts_src/*"],
+      "@assets/*": ["ts_src/assets/*"],
+      "@scenes/*": ["ts_src/scenes/*"],
+      "@entities/*": ["ts_src/entities/*"],
+      "@systems/*": ["ts_src/systems/*"],
+      "@ui/*": ["ts_src/ui/*"],
+      "@utils/*": ["ts_src/utils/*"],
+      "@config/*": ["ts_src/config/*"]
+    }
+  },
+  "include": ["ts_src/**/*"],
+  "exclude": ["node_modules"]
+}
