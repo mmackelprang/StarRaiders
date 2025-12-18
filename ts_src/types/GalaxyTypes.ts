@@ -13,13 +13,6 @@ export interface EnemyData {
   position: SectorCoordinate;
 }
 
-export interface StarbaseData {
-  id: string;
-  health: number;
-  underAttack: boolean;
-  attackCountdown: number; // centons until destroyed if under attack
-}
-
 export interface SectorData {
   coordinate: SectorCoordinate;
   hasPlayer: boolean;

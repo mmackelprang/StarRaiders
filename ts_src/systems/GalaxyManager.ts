@@ -1,5 +1,5 @@
 import { GALAXY_SIZE, DifficultyLevel, EnemyType, STARBASE_ATTACK_TIMER } from '@utils/Constants';
-import { SectorCoordinate, SectorData, EnemyData, StarbaseData, GalaxyData, DifficultyConfig } from '@/types/GalaxyTypes';
+import { SectorCoordinate, SectorData, EnemyData, GalaxyData, DifficultyConfig } from '@/types/GalaxyTypes';
 import { Starbase } from '@/entities/Starbase';
 import difficultyData from '@assets/data/difficulty.json';
 
