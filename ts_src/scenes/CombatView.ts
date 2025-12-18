@@ -1,7 +1,10 @@
 import Phaser from 'phaser';
 import { VectorRenderer } from '@systems/VectorRenderer';
 import { StarfieldManager } from '@systems/StarfieldManager';
+import { CombatSystem } from '@systems/CombatSystem';
+import { ExplosionManager } from '@systems/ExplosionManager';
 import { Enemy } from '@entities/Enemy';
+import { Torpedo, TorpedoDirection } from '@entities/Torpedo';
 import { GameStateManager, GameStateType } from '@systems/GameStateManager';
 import { InputManager, InputAction } from '@systems/InputManager';
 import { SPEED_TABLE, EnemyType } from '@utils/Constants';
@@ -15,6 +18,8 @@ export enum ViewDirection {
 export class CombatViewScene extends Phaser.Scene {
   private vectorRenderer!: VectorRenderer;
   private starfieldManager!: StarfieldManager;
+  private combatSystem!: CombatSystem;
+  private explosionManager!: ExplosionManager;
   private gameStateManager!: GameStateManager;
   private inputManager!: InputManager;
 
@@ -53,6 +58,8 @@ export class CombatViewScene extends Phaser.Scene {
     // Create rendering systems
     this.vectorRenderer = new VectorRenderer(this);
     this.starfieldManager = new StarfieldManager(this);
+    this.combatSystem = new CombatSystem(this);
+    this.explosionManager = new ExplosionManager(this);
 
     // Create HUD elements
     this.createHUD();
@@ -65,6 +72,9 @@ export class CombatViewScene extends Phaser.Scene {
 
     // Set up input
     this.setupInput();
+    
+    // Set up combat event handlers
+    this.setupCombatEvents();
   }
 
   private createHUD(): void {
@@ -280,6 +290,65 @@ export class CombatViewScene extends Phaser.Scene {
         this.setVelocity(i);
       });
     }
+    
+    // Fire torpedo
+    this.inputManager.on(InputAction.FIRE_TORPEDO, () => {
+      this.fireTorpedo();
+    });
+  }
+  
+  private setupCombatEvents(): void {
+    // Handle torpedo hit
+    this.events.on('torpedoHit', (torpedo: Torpedo, enemy: Enemy) => {
+      // Get screen position for explosion
+      const screenPos = this.vectorRenderer.projectToScreen(enemy.position);
+      if (screenPos) {
+        this.explosionManager.createExplosion(enemy.position, screenPos);
+      }
+    });
+    
+    // Handle enemy destroyed
+    this.events.on('enemyDestroyed', (enemy: Enemy) => {
+      // Remove enemy from list
+      const index = this.enemies.findIndex(e => e.id === enemy.id);
+      if (index !== -1) {
+        this.enemies.splice(index, 1);
+      }
+    });
+    
+    // Handle torpedo fired
+    this.events.on('torpedoFired', (torpedo: Torpedo) => {
+      // Get screen position for muzzle flash
+      const playerPos = { x: 0, y: 0, z: 0 };
+      const screenPos = this.vectorRenderer.projectToScreen(playerPos);
+      if (screenPos) {
+        this.explosionManager.createMuzzleFlash(screenPos);
+      }
+    });
+  }
+  
+  private fireTorpedo(): void {
+    const gameState = this.gameStateManager.getGameState();
+    const playerPosition = gameState.player.position;
+    
+    // Determine direction based on view
+    const direction = this.viewDirection === ViewDirection.FORE 
+      ? TorpedoDirection.FORE 
+      : TorpedoDirection.AFT;
+    
+    // Get lock status for nearest enemy
+    let lockStatus = { hLock: false, vLock: false, rangeLock: false };
+    if (this.enemies.length > 0) {
+      const target = this.enemies[0];
+      lockStatus = this.combatSystem.calculateLockStatus(playerPosition, target.position);
+    }
+    
+    // Fire the torpedo
+    const torpedo = this.combatSystem.fireTorpedo(playerPosition, direction, lockStatus);
+    
+    if (torpedo) {
+      Debug.log(`Fired torpedo! Locks: H:${lockStatus.hLock} V:${lockStatus.vLock} R:${lockStatus.rangeLock}`);
+    }
   }
 
   private setVelocity(level: number): void {
@@ -294,6 +363,9 @@ export class CombatViewScene extends Phaser.Scene {
 
     // Update input manager
     this.inputManager.update();
+
+    // Update combat system (torpedoes and collisions)
+    this.combatSystem.update(deltaSeconds, this.enemies);
 
     // Update starfield based on velocity
     const velocity = SPEED_TABLE[gameState.player.velocity] || 0;
@@ -317,8 +389,14 @@ export class CombatViewScene extends Phaser.Scene {
       this.vectorRenderer.renderEnemy(enemy);
     }
 
+    // Render all torpedoes
+    this.renderTorpedoes();
+
     // Flush depth buffer
     this.vectorRenderer.flush();
+
+    // Update explosion effects
+    this.explosionManager.update();
 
     // Update HUD
     this.updateHUD();
@@ -339,6 +417,34 @@ export class CombatViewScene extends Phaser.Scene {
       this.hLock = Math.abs(target.position.x) < 5;
       this.vLock = Math.abs(target.position.y) < 5;
       this.rangeLock = this.targetRange >= 30 && this.targetRange <= 70;
+    }
+  }
+  
+  private renderTorpedoes(): void {
+    const torpedoes = this.combatSystem.getTorpedoes();
+    
+    for (const torpedo of torpedoes) {
+      // Project torpedo position to screen
+      const screenPos = this.vectorRenderer.projectToScreen(torpedo.position);
+      
+      if (screenPos) {
+        // Calculate torpedo endpoint (for trail effect)
+        const trailLength = torpedo.getVisualLength(Math.abs(torpedo.position.z));
+        const endX = screenPos.x - (torpedo.direction === TorpedoDirection.FORE ? trailLength : -trailLength);
+        
+        // Draw torpedo as a bright line
+        const graphics = this.add.graphics();
+        graphics.lineStyle(3, 0xffffff, 1.0);
+        graphics.lineBetween(endX, screenPos.y, screenPos.x, screenPos.y);
+        
+        // Add glow effect
+        graphics.lineStyle(6, 0xffffff, 0.3);
+        graphics.lineBetween(endX, screenPos.y, screenPos.x, screenPos.y);
+        
+        // Clean up after rendering
+        graphics.setDepth(50);
+        this.time.delayedCall(100, () => graphics.destroy());
+      }
     }
   }
 
@@ -369,5 +475,16 @@ export class CombatViewScene extends Phaser.Scene {
     if (this.starfieldManager) {
       this.starfieldManager.destroy();
     }
+    if (this.combatSystem) {
+      this.combatSystem.destroy();
+    }
+    if (this.explosionManager) {
+      this.explosionManager.destroy();
+    }
+    
+    // Remove event listeners
+    this.events.off('torpedoHit');
+    this.events.off('enemyDestroyed');
+    this.events.off('torpedoFired');
   }
 }

@@ -8,7 +8,7 @@
 
 ## Phase 10 – Combat System & Torpedoes (Summary)
 
-### Status: ⬜ Not Started
+### Status: 🔄 In Progress
 
 ### Dependencies
 - Phase 9 completed (Combat Views)
