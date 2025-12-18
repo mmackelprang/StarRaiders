@@ -1,3 +1,40 @@
+// Mock Phaser before importing anything that uses it
+jest.mock('phaser', () => ({
+  Events: {
+    EventEmitter: class {
+      private listeners: Map<string, Function[]> = new Map();
+      
+      on(event: string, callback: Function) {
+        if (!this.listeners.has(event)) {
+          this.listeners.set(event, []);
+        }
+        this.listeners.get(event)!.push(callback);
+      }
+      
+      off(event: string, callback?: Function) {
+        if (callback) {
+          const callbacks = this.listeners.get(event);
+          if (callbacks) {
+            const index = callbacks.indexOf(callback);
+            if (index > -1) {
+              callbacks.splice(index, 1);
+            }
+          }
+        } else {
+          this.listeners.delete(event);
+        }
+      }
+      
+      emit(event: string, ...args: any[]) {
+        const callbacks = this.listeners.get(event);
+        if (callbacks) {
+          callbacks.forEach(callback => callback(...args));
+        }
+      }
+    }
+  }
+}));
+
 import { CombatSystem } from '../CombatSystem';
 import { Enemy } from '@entities/Enemy';
 import { TorpedoDirection } from '@entities/Torpedo';
@@ -27,7 +64,8 @@ describe('CombatSystem', () => {
     gameState.player.energy = 7000;
     gameState.player.systems.photon = SystemStatus.OPERATIONAL;
     
-    mockScene.time.now = 0;
+    // Set time to 1000ms (1 second) to avoid cooldown issues
+    mockScene.time.now = 1000;
   });
 
   describe('fireTorpedo', () => {
@@ -112,8 +150,8 @@ describe('CombatSystem', () => {
       );
       expect(torpedo2).toBeNull();
 
-      // Wait for cooldown
-      mockScene.time.now = 300; // 0.3 seconds
+      // Wait for cooldown (0.25 seconds = 250ms, so add 300ms to be safe)
+      mockScene.time.now += 300;
 
       // Should succeed now
       const torpedo3 = combatSystem.fireTorpedo(

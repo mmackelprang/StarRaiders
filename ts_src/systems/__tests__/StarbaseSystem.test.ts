@@ -1,3 +1,40 @@
+// Mock Phaser before importing anything that uses it
+jest.mock('phaser', () => ({
+  Events: {
+    EventEmitter: class {
+      private listeners: Map<string, Function[]> = new Map();
+      
+      on(event: string, callback: Function) {
+        if (!this.listeners.has(event)) {
+          this.listeners.set(event, []);
+        }
+        this.listeners.get(event)!.push(callback);
+      }
+      
+      off(event: string, callback?: Function) {
+        if (callback) {
+          const callbacks = this.listeners.get(event);
+          if (callbacks) {
+            const index = callbacks.indexOf(callback);
+            if (index > -1) {
+              callbacks.splice(index, 1);
+            }
+          }
+        } else {
+          this.listeners.delete(event);
+        }
+      }
+      
+      emit(event: string, ...args: any[]) {
+        const callbacks = this.listeners.get(event);
+        if (callbacks) {
+          callbacks.forEach(callback => callback(...args));
+        }
+      }
+    }
+  }
+}));
+
 import { StarbaseSystem } from '../StarbaseSystem';
 import { GalaxyManager } from '../GalaxyManager';
 import { GameStateManager } from '../GameStateManager';

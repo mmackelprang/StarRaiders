@@ -63,3 +63,10 @@ crashlytics-build.properties
 
 # Documentation build artifacts
 docs/_build/
+
+# Node.js / TypeScript
+node_modules/
+dist/
+*.log
+.vite/
+package-lock.json
