@@ -1,4 +1,5 @@
 import { EnemyType } from '@utils/Constants';
+import { Starbase } from '@/entities/Starbase';
 
 export interface SectorCoordinate {
   x: number;
@@ -23,7 +24,7 @@ export interface SectorData {
   coordinate: SectorCoordinate;
   hasPlayer: boolean;
   enemies: EnemyData[];
-  starbase: StarbaseData | null;
+  starbase: Starbase | null;
   visited: boolean;
 }
 

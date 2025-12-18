@@ -3,6 +3,8 @@ import { VectorRenderer } from '@systems/VectorRenderer';
 import { StarfieldManager } from '@systems/StarfieldManager';
 import { CombatSystem } from '@systems/CombatSystem';
 import { ExplosionManager } from '@systems/ExplosionManager';
+import { StarbaseSystem } from '@systems/StarbaseSystem';
+import { GalaxyManager } from '@systems/GalaxyManager';
 import { Enemy } from '@entities/Enemy';
 import { Torpedo, TorpedoDirection } from '@entities/Torpedo';
 import { GameStateManager, GameStateType } from '@systems/GameStateManager';
@@ -22,6 +24,8 @@ export class CombatViewScene extends Phaser.Scene {
   private explosionManager!: ExplosionManager;
   private gameStateManager!: GameStateManager;
   private inputManager!: InputManager;
+  private starbaseSystem!: StarbaseSystem;
+  private galaxyManager!: GalaxyManager;
 
   private enemies: Enemy[] = [];
   private viewDirection: ViewDirection = ViewDirection.FORE;
@@ -52,6 +56,8 @@ export class CombatViewScene extends Phaser.Scene {
     this.gameStateManager = GameStateManager.getInstance();
     this.inputManager = InputManager.getInstance();
     this.inputManager.initialize(this);
+    this.starbaseSystem = StarbaseSystem.getInstance();
+    this.galaxyManager = GalaxyManager.getInstance();
 
     // Set state
     this.gameStateManager.setState(GameStateType.PLAYING);
@@ -341,6 +347,11 @@ export class CombatViewScene extends Phaser.Scene {
     this.inputManager.on(InputAction.FIRE_TORPEDO, () => {
       this.fireTorpedo();
     });
+
+    // Docking
+    this.inputManager.on(InputAction.DOCK, () => {
+      this.attemptDocking();
+    });
   }
   
   private setupCombatEvents(): void {
@@ -395,6 +406,61 @@ export class CombatViewScene extends Phaser.Scene {
     if (torpedo) {
       Debug.log(`Fired torpedo! Locks: H:${lockStatus.hLock} V:${lockStatus.vLock} R:${lockStatus.rangeLock}`);
     }
+  }
+
+  private attemptDocking(): void {
+    const gameState = this.gameStateManager.getGameState();
+    const playerPosition = gameState.player.position;
+    const playerVelocity = gameState.player.velocity;
+    const currentSector = gameState.player.sector;
+
+    // Attempt docking
+    const result = this.starbaseSystem.attemptDocking(
+      playerPosition,
+      playerVelocity,
+      currentSector
+    );
+
+    if (result.success) {
+      Debug.log('Docking successful! All systems repaired and energy restored.');
+      // Show success message
+      this.showMessage(result.message, 0x00ff00);
+      
+      // Return to galactic chart after docking
+      this.time.delayedCall(2000, () => {
+        this.scene.start('GalacticChart');
+      });
+    } else {
+      Debug.log(`Docking failed: ${result.message}`);
+      // Show error message
+      this.showMessage(result.message, 0xff0000);
+    }
+  }
+
+  private showMessage(text: string, color: number): void {
+    // Create centered message text
+    const centerX = this.cameras.main.width / 2;
+    const centerY = this.cameras.main.height / 2;
+
+    const message = this.add.text(centerX, centerY, text, {
+      fontSize: '24px',
+      color: `#${color.toString(16).padStart(6, '0')}`,
+      fontFamily: 'monospace',
+      backgroundColor: '#000000',
+      padding: { x: 20, y: 10 },
+    });
+    message.setOrigin(0.5);
+
+    // Fade out and destroy after 3 seconds
+    this.tweens.add({
+      targets: message,
+      alpha: 0,
+      duration: 1000,
+      delay: 2000,
+      onComplete: () => {
+        message.destroy();
+      },
+    });
   }
 
   private setVelocity(level: number): void {
