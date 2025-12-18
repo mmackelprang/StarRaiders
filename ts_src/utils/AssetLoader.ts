@@ -8,6 +8,7 @@ export class AssetLoader {
 
   static preloadAudio(scene: Phaser.Scene): void {
     // Load all WAV audio files from assets/audio directory
+    // Path is relative to the web server root where Vite serves files
     const audioPath = 'ts_src/assets/audio';
     
     // Combat sounds

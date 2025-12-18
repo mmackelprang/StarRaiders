@@ -49,9 +49,9 @@ export class AudioManager {
     Debug.log(`AudioManager: Play SFX '${soundName}' at volume ${effectiveVolume.toFixed(2)}`);
 
     // Play the sound using Phaser's sound system
+    // Using scene.sound.play() for one-off sounds that auto-cleanup after playing
     try {
-      const sound = this.scene.sound.add(soundName);
-      sound.play({ volume: effectiveVolume });
+      this.scene.sound.play(soundName, { volume: effectiveVolume });
     } catch (error) {
       Debug.log(`AudioManager: Failed to play sound '${soundName}': ${error}`);
     }

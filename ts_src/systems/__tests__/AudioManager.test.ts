@@ -25,7 +25,8 @@ describe('AudioManager', () => {
     // Create mock scene with sound system
     mockScene = {
       sound: {
-        add: jest.fn().mockReturnValue(mockSound)
+        add: jest.fn().mockReturnValue(mockSound),
+        play: jest.fn() // For SFX that use play() directly
       }
     };
 
@@ -52,51 +53,44 @@ describe('AudioManager', () => {
   describe('SFX Playback', () => {
     test('should play torpedo fire sound', () => {
       manager.playTorpedoFire();
-      expect(mockScene.sound.add).toHaveBeenCalledWith('torpedo_fire');
-      expect(mockSound.play).toHaveBeenCalled();
+      expect(mockScene.sound.play).toHaveBeenCalledWith('torpedo_fire', expect.any(Object));
     });
 
     test('should play explosion sound', () => {
       manager.playExplosion();
-      expect(mockScene.sound.add).toHaveBeenCalledWith('explosion');
-      expect(mockSound.play).toHaveBeenCalled();
+      expect(mockScene.sound.play).toHaveBeenCalledWith('explosion', expect.any(Object));
     });
 
     test('should play shield impact for hit sound', () => {
       manager.playHit();
-      expect(mockScene.sound.add).toHaveBeenCalledWith('shield_impact');
-      expect(mockSound.play).toHaveBeenCalled();
+      expect(mockScene.sound.play).toHaveBeenCalledWith('shield_impact', expect.any(Object));
     });
 
     test('should play shield activate sound', () => {
       manager.playShieldActivate();
-      expect(mockScene.sound.add).toHaveBeenCalledWith('shield_activate');
-      expect(mockSound.play).toHaveBeenCalled();
+      expect(mockScene.sound.play).toHaveBeenCalledWith('shield_activate', expect.any(Object));
     });
 
     test('should play hyperspace enter sound', () => {
       manager.playHyperspaceEnter();
-      expect(mockScene.sound.add).toHaveBeenCalledWith('hyperspace_enter');
-      expect(mockSound.play).toHaveBeenCalled();
+      expect(mockScene.sound.play).toHaveBeenCalledWith('hyperspace_enter', expect.any(Object));
     });
 
     test('should play docking sound', () => {
       manager.playDocking();
-      expect(mockScene.sound.add).toHaveBeenCalledWith('docking');
-      expect(mockSound.play).toHaveBeenCalled();
+      expect(mockScene.sound.play).toHaveBeenCalledWith('docking', expect.any(Object));
     });
 
     test('should play victory sound', () => {
       manager.playVictory();
-      expect(mockScene.sound.add).toHaveBeenCalledWith('victory');
-      expect(mockSound.play).toHaveBeenCalled();
+      expect(mockScene.sound.play).toHaveBeenCalledWith('victory', expect.any(Object));
     });
 
     test('should not play sounds when disabled', () => {
       manager.setEnabled(false);
-      mockScene.sound.add.mockClear();
+      mockScene.sound.play.mockClear();
       manager.playTorpedoFire();
-      expect(mockScene.sound.add).not.toHaveBeenCalled();
+      expect(mockScene.sound.play).not.toHaveBeenCalled();
     });
   });
 
@@ -155,11 +149,12 @@ describe('AudioManager', () => {
       manager.setSFXVolume(0.8);
       
       // Clear previous calls and play
-      mockSound.play.mockClear();
+      mockScene.sound.play.mockClear();
       manager.playTorpedoFire(); // volume = 0.6
       
       const expectedVolume = 0.7 * 0.8 * 0.6;
-      expect(mockSound.play).toHaveBeenCalledWith(
+      expect(mockScene.sound.play).toHaveBeenCalledWith(
+        'torpedo_fire',
         expect.objectContaining({
           volume: expect.closeTo(expectedVolume, 2)
         })
