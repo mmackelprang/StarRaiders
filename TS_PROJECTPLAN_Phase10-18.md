@@ -33,7 +33,7 @@ From **Star_Raiders_PRD.md Section 12** (Combat System):
 
 ## Phase 11 – PESCLR Damage System (Summary)
 
-### Status: ⬜ Not Started
+### Status: ✅ Completed
 
 ### Dependencies
 - Phase 10 completed (Combat)

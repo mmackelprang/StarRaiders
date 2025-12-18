@@ -3,6 +3,7 @@ import { Torpedo, TorpedoDirection } from '@entities/Torpedo';
 import { Enemy } from '@entities/Enemy';
 import { Vector3D } from '@utils/Types';
 import { GameStateManager } from './GameStateManager';
+import { PESCLRSystem } from './PESCLRSystem';
 import { SystemStatus, EnemyType } from '@utils/Constants';
 import { Debug } from '@utils/Debug';
 
@@ -17,6 +18,7 @@ export class CombatSystem {
   private torpedoes: Torpedo[] = [];
   private nextTorpedoId: number = 0;
   private gameStateManager: GameStateManager;
+  private pesclrSystem: PESCLRSystem;
   
   // Lock indicator thresholds
   private readonly hLockThreshold: number = 5; // metrons horizontal tolerance
@@ -35,6 +37,7 @@ export class CombatSystem {
   constructor(scene: Phaser.Scene) {
     this.scene = scene;
     this.gameStateManager = GameStateManager.getInstance();
+    this.pesclrSystem = new PESCLRSystem();
   }
   
   /**
@@ -74,15 +77,19 @@ export class CombatSystem {
     const gameState = this.gameStateManager.getGameState();
     const currentTime = this.scene.time.now / 1000;
     
-    // Check cooldown
-    if (currentTime - this.lastFireTime < this.torpedoCooldown) {
-      Debug.log('CombatSystem: Torpedo on cooldown');
-      return null;
-    }
-    
     // Check if photon system is operational
     if (gameState.player.systems.photon === SystemStatus.DESTROYED) {
       Debug.log('CombatSystem: Photon torpedoes destroyed, cannot fire');
+      return null;
+    }
+    
+    // Apply fire rate multiplier from PESCLR system
+    const fireRateMultiplier = this.pesclrSystem.getFireRateMultiplier();
+    const actualCooldown = this.torpedoCooldown / fireRateMultiplier;
+    
+    // Check cooldown
+    if (currentTime - this.lastFireTime < actualCooldown) {
+      Debug.log('CombatSystem: Torpedo on cooldown');
       return null;
     }
     
@@ -157,8 +164,9 @@ export class CombatSystem {
    * Handle torpedo hitting an enemy
    */
   private handleTorpedoHit(torpedo: Torpedo, enemy: Enemy): void {
-    // Calculate damage (can be modified by range, accuracy, etc.)
-    const damage = this.baseDamage;
+    // Calculate damage with PESCLR multiplier
+    const damageMultiplier = this.pesclrSystem.getPhotonDamageMultiplier();
+    const damage = this.baseDamage * damageMultiplier;
     
     // Apply damage
     const destroyed = enemy.takeDamage(damage);
@@ -253,6 +261,28 @@ export class CombatSystem {
       torpedo.destroy();
     }
     this.torpedoes = [];
+  }
+  
+  /**
+   * Handle player taking damage from enemy
+   */
+  handlePlayerDamage(): void {
+    const damageResult = this.pesclrSystem.applyDamage();
+    
+    if (damageResult.systemDamaged) {
+      // Emit event for visual/audio feedback
+      this.scene.events.emit('playerDamaged', damageResult);
+      Debug.warn(`Player Hit: ${damageResult.message}`);
+    } else {
+      Debug.log(`Player Hit: ${damageResult.message}`);
+    }
+  }
+  
+  /**
+   * Get PESCLR system reference
+   */
+  getPESCLRSystem(): PESCLRSystem {
+    return this.pesclrSystem;
   }
   
   /**

@@ -31,6 +31,7 @@ export class CombatViewScene extends Phaser.Scene {
   private lockIndicators!: Phaser.GameObjects.Graphics;
   private positionIndicators!: Phaser.GameObjects.Graphics;
   private statusBar!: Phaser.GameObjects.Text;
+  private pesclrDisplay!: Phaser.GameObjects.Text;
 
   // Lock status
   private hLock: boolean = false;
@@ -66,6 +67,7 @@ export class CombatViewScene extends Phaser.Scene {
     this.createLockIndicators();
     this.createPositionIndicators();
     this.createStatusBar();
+    this.createPESCLRDisplay();
 
     // Create test enemies for demonstration
     this.createTestEnemies();
@@ -222,6 +224,50 @@ export class CombatViewScene extends Phaser.Scene {
       }
     );
     this.statusBar.setOrigin(0.5);
+  }
+
+  private createPESCLRDisplay(): void {
+    // PESCLR system status display - placeholder
+    this.pesclrDisplay = this.add.text(0, 0, '', { fontSize: '1px' });
+  }
+
+  private updatePESCLRDisplay(): void {
+    const pesclrSystem = this.combatSystem.getPESCLRSystem();
+    const gameState = this.gameStateManager.getGameState();
+    const systems = gameState.player.systems;
+    
+    const startX = this.scale.width - 150;
+    const startY = 60;
+    const spacing = 25;
+    
+    // Create/update individual colored text for each system
+    const systemLetters = ['P', 'E', 'S', 'C', 'L', 'R'];
+    const systemKeys: (keyof typeof systems)[] = ['photon', 'engines', 'shields', 'computer', 'longRange', 'radio'];
+    
+    // We need to destroy and recreate these each frame for color updates
+    // In a real implementation, we'd cache these and only update when status changes
+    for (let i = 0; i < systemLetters.length; i++) {
+      const letter = systemLetters[i];
+      const key = systemKeys[i];
+      const status = systems[key];
+      const color = pesclrSystem.getSystemColor(status);
+      
+      const text = this.add.text(
+        startX + (i * spacing),
+        startY,
+        letter,
+        {
+          fontSize: '20px',
+          color: color,
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        }
+      );
+      text.setDepth(1000); // Ensure it's on top
+      
+      // Auto-destroy after this frame
+      this.time.delayedCall(100, () => text.destroy());
+    }
   }
 
   private createTestEnemies(): void {
@@ -404,6 +450,9 @@ export class CombatViewScene extends Phaser.Scene {
     // Redraw indicators
     this.drawLockIndicators();
     this.drawPositionIndicators();
+    
+    // Update PESCLR display
+    this.updatePESCLRDisplay();
   }
 
   private updateLockStatus(): void {
