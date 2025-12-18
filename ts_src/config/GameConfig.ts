@@ -1,5 +1,8 @@
 import Phaser from 'phaser';
 import { BootScene } from '@scenes/Boot';
+import { TitleScene } from '@scenes/Title';
+import { GameOverScene } from '@scenes/GameOver';
+import { RankingScene } from '@scenes/Ranking';
 import { StarfieldTestScene } from '@scenes/StarfieldTest';
 import { GalacticChartTestScene } from '@scenes/GalacticChartTest';
 import { GalacticChartScene } from '@scenes/GalacticChart';
@@ -24,5 +27,13 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     target: 60,
     forceSetTimeOut: true
   },
-  scene: [BootScene, StarfieldTestScene, GalacticChartTestScene, GalacticChartScene]  // Will add more scenes in later phases
+  scene: [
+    BootScene,
+    TitleScene,
+    GameOverScene,
+    RankingScene,
+    GalacticChartScene,
+    StarfieldTestScene,
+    GalacticChartTestScene
+  ]
 };
