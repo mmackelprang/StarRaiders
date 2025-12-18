@@ -128,6 +128,12 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ENTER', () => {
       this.startGame();
     });
+
+    // DEBUG: Test scenes
+    this.input.keyboard.on('keydown-THREE', () => {
+      Debug.log('Opening 3D Vector Render Test');
+      this.scene.start('VectorRenderTest');
+    });
   }
 
   private updateSelection(): void {
