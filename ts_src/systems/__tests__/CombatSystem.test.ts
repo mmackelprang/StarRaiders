@@ -64,7 +64,8 @@ describe('CombatSystem', () => {
     gameState.player.energy = 7000;
     gameState.player.systems.photon = SystemStatus.OPERATIONAL;
     
-    mockScene.time.now = 0;
+    // Set time to 1000ms (1 second) to avoid cooldown issues
+    mockScene.time.now = 1000;
   });
 
   describe('fireTorpedo', () => {
@@ -149,8 +150,8 @@ describe('CombatSystem', () => {
       );
       expect(torpedo2).toBeNull();
 
-      // Wait for cooldown
-      mockScene.time.now = 300; // 0.3 seconds
+      // Wait for cooldown (0.25 seconds = 250ms, so add 300ms to be safe)
+      mockScene.time.now += 300;
 
       // Should succeed now
       const torpedo3 = combatSystem.fireTorpedo(
