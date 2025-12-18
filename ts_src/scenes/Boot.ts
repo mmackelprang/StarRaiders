@@ -33,9 +33,9 @@ export class BootScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     this.input.keyboard?.once('keydown', () => {
-      Debug.log('Key pressed, starting game...');
-      // Will transition to Title scene in Phase 7
-      // For now, just log
+      Debug.log('Key pressed, starting starfield test...');
+      // Transition to StarfieldTest for Phase 5 testing
+      this.scene.start('StarfieldTest');
     });
   }
 }
