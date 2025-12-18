@@ -335,6 +335,11 @@ export class CombatViewScene extends Phaser.Scene {
       this.scene.start('GalacticChart');
     });
 
+    // Open long-range scan
+    this.inputManager.on(InputAction.LONG_RANGE_SCAN, () => {
+      this.scene.start('LongRangeScan');
+    });
+
     // Speed controls
     for (let i = 0; i <= 9; i++) {
       const action = `SPEED_${i}` as InputAction;
