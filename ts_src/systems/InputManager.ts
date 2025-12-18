@@ -96,6 +96,9 @@ export class InputManager {
   private setupKeyboardListeners(): void {
     if (!this.scene || !this.scene.input.keyboard) return;
 
+    // Remove any existing listeners from previous scene
+    this.scene.input.keyboard.removeAllListeners('keydown');
+
     // Set up cursor keys
     this.cursors = this.scene.input.keyboard.createCursorKeys();
 
