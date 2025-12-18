@@ -52,7 +52,7 @@ This comprehensive project plan breaks down the Star Raiders recreation into 18 
 | 7 | Title & UI Screens | ✅ Completed | Phases 3, 5 | 3-4 hours |
 | 8 | 3D Vector Rendering | ✅ Completed | Phase 5 | 4-5 hours |
 | 9 | Fore/Aft Combat Views | ✅ Completed | Phases 3, 8 | 4-5 hours |
-| 10 | Combat System & Torpedoes | 🔄 In Progress | Phase 9 | 4-5 hours |
+| 10 | Combat System & Torpedoes | ✅ Completed | Phase 9 | 4-5 hours |
 | 11 | PESCLR Damage System | ⬜ Not Started | Phase 10 | 3-4 hours |
 | 12 | Energy Management | ⬜ Not Started | Phases 10, 11 | 2-3 hours |
 | 13 | Enemy AI - Basic | ⬜ Not Started | Phases 4, 8 | 5-6 hours |
