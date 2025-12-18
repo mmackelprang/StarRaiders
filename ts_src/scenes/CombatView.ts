@@ -606,5 +606,20 @@ export class CombatViewScene extends Phaser.Scene {
     this.events.off('torpedoHit');
     this.events.off('enemyDestroyed');
     this.events.off('torpedoFired');
+    
+    // Remove all input manager listeners to prevent memory leaks
+    if (this.inputManager) {
+      this.inputManager.off(InputAction.TOGGLE_SHIELDS);
+      this.inputManager.off(InputAction.TOGGLE_COMPUTER);
+      this.inputManager.off(InputAction.VIEW_FORE);
+      this.inputManager.off(InputAction.VIEW_AFT);
+      this.inputManager.off(InputAction.GALACTIC_CHART);
+      this.inputManager.off(InputAction.LONG_RANGE_SCAN);
+      this.inputManager.off(InputAction.FIRE_TORPEDO);
+      this.inputManager.off(InputAction.DOCK);
+      for (let i = 0; i <= 9; i++) {
+        this.inputManager.off(`SPEED_${i}` as InputAction);
+      }
+    }
   }
 }
