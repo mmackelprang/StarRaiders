@@ -1,5 +1,5 @@
 export class Debug {
-  private static enabled = import.meta.env.DEV;
+  private static enabled = typeof process !== 'undefined' && process.env.NODE_ENV === 'development';
 
   static log(...args: any[]): void {
     if (this.enabled) {
