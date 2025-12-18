@@ -35,6 +35,13 @@ export class LongRangeScanScene extends Phaser.Scene {
   private enemies: Enemy[] = [];
   private falseEchoes: Array<{ x: number; y: number; type: EnemyType }> = [];
 
+  // Text objects for reuse (to prevent memory leaks)
+  private enemyMarkers: Phaser.GameObjects.Text[] = [];
+  private falseEchoMarkers: Phaser.GameObjects.Text[] = [];
+  private rangeLabels: Phaser.GameObjects.Text[] = [];
+  private flickerTimer: number = 0;
+  private readonly flickerInterval: number = 0.5; // seconds
+
   constructor() {
     super({ key: 'LongRangeScan' });
   }
@@ -85,12 +92,7 @@ export class LongRangeScanScene extends Phaser.Scene {
       fontFamily: 'monospace',
     });
 
-    // Player stats
-    const velocity = gameState.player.velocity;
-    const energy = gameState.player.energy;
-    const kills = gameState.player.kills;
-    const tracking = 'L'; // Long-range scan mode
-
+    // Player stats HUD text (will be updated in update loop)
     this.hudText = this.add.text(1500, 900, '', {
       fontSize: '20px',
       color: '#FFFFFF',
@@ -217,13 +219,24 @@ export class LongRangeScanScene extends Phaser.Scene {
         this.radarGraphics.fillCircle(x, y, 2);
       });
 
-      // Range label
+      // Range label - reuse existing labels or create new ones
       if (i % 2 === 0) { // Label every other circle
-        this.add.text(this.radarCenterX + radius + 10, this.radarCenterY - 10, `${metrons}m`, {
-          fontSize: '14px',
-          color: '#00FF00',
-          fontFamily: 'monospace',
-        });
+        const labelIndex = Math.floor(i / 2) - 1;
+        if (labelIndex >= 0) {
+          if (labelIndex >= this.rangeLabels.length) {
+            const label = this.add.text(this.radarCenterX + radius + 10, this.radarCenterY - 10, `${metrons}m`, {
+              fontSize: '14px',
+              color: '#00FF00',
+              fontFamily: 'monospace',
+            });
+            this.rangeLabels.push(label);
+          } else {
+            // Reuse existing label
+            this.rangeLabels[labelIndex].setPosition(this.radarCenterX + radius + 10, this.radarCenterY - 10);
+            this.rangeLabels[labelIndex].setText(`${metrons}m`);
+            this.rangeLabels[labelIndex].setVisible(true);
+          }
+        }
       }
     }
 
@@ -257,6 +270,7 @@ export class LongRangeScanScene extends Phaser.Scene {
   }
 
   private drawEnemies(): void {
+    let markerIndex = 0;
     this.enemies.forEach(enemy => {
       // Calculate position on radar
       const distance = Math.sqrt(enemy.position.x * enemy.position.x + 
@@ -272,19 +286,35 @@ export class LongRangeScanScene extends Phaser.Scene {
         const letter = this.getEnemyLetter(enemy.type);
         const color = this.getEnemyColor(enemy.type);
 
-        // Draw enemy marker
-        this.add.text(screenX, screenY, letter, {
-          fontSize: '20px',
-          color: color,
-          fontFamily: 'monospace',
-          fontStyle: 'bold',
-        }).setOrigin(0.5);
+        // Reuse existing marker or create new one
+        if (markerIndex >= this.enemyMarkers.length) {
+          const marker = this.add.text(screenX, screenY, letter, {
+            fontSize: '20px',
+            color: color,
+            fontFamily: 'monospace',
+            fontStyle: 'bold',
+          }).setOrigin(0.5);
+          this.enemyMarkers.push(marker);
+        } else {
+          // Reuse existing marker
+          const marker = this.enemyMarkers[markerIndex];
+          marker.setPosition(screenX, screenY);
+          marker.setText(letter);
+          marker.setColor(color);
+          marker.setVisible(true);
+        }
+        markerIndex++;
       }
     });
+
+    // Hide unused markers
+    for (let i = markerIndex; i < this.enemyMarkers.length; i++) {
+      this.enemyMarkers[i].setVisible(false);
+    }
   }
 
   private drawFalseEchoes(): void {
-    this.falseEchoes.forEach(echo => {
+    this.falseEchoes.forEach((echo, index) => {
       const scale = this.radarMaxRadius / this.maxRange;
       const screenX = this.radarCenterX + echo.x * scale;
       const screenY = this.radarCenterY + echo.y * scale;
@@ -293,13 +323,30 @@ export class LongRangeScanScene extends Phaser.Scene {
 
       // Draw with flickering effect
       const alpha = Math.random() > 0.5 ? 0.5 : 0.8;
-      this.add.text(screenX, screenY, letter, {
-        fontSize: '20px',
-        color: '#FFFF00', // Yellow for false echoes
-        fontFamily: 'monospace',
-        fontStyle: 'bold',
-      }).setOrigin(0.5).setAlpha(alpha);
+      
+      // Reuse existing marker or create new one
+      if (index >= this.falseEchoMarkers.length) {
+        const marker = this.add.text(screenX, screenY, letter, {
+          fontSize: '20px',
+          color: '#FFFF00', // Yellow for false echoes
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        }).setOrigin(0.5).setAlpha(alpha);
+        this.falseEchoMarkers.push(marker);
+      } else {
+        // Reuse existing marker
+        const marker = this.falseEchoMarkers[index];
+        marker.setPosition(screenX, screenY);
+        marker.setText(letter);
+        marker.setAlpha(alpha);
+        marker.setVisible(true);
+      }
     });
+
+    // Hide unused markers
+    for (let i = this.falseEchoes.length; i < this.falseEchoMarkers.length; i++) {
+      this.falseEchoMarkers[i].setVisible(false);
+    }
   }
 
   private getEnemyLetter(type: EnemyType): string {
@@ -371,9 +418,13 @@ export class LongRangeScanScene extends Phaser.Scene {
       `V: ${velocity.toString().padStart(2, '0')}  E: ${energy}  K: ${kills.toString().padStart(2, '0')}  T: L`
     );
 
-    // Flicker false echoes
-    if (this.falseEchoes.length > 0 && Math.random() > 0.95) {
-      this.drawRadar(); // Redraw occasionally to create flicker effect
+    // Flicker false echoes using timer-based approach instead of random
+    if (this.falseEchoes.length > 0) {
+      this.flickerTimer += delta / 1000; // Convert to seconds
+      if (this.flickerTimer >= this.flickerInterval) {
+        this.flickerTimer = 0;
+        this.drawRadar(); // Redraw at consistent intervals to create flicker effect
+      }
     }
   }
 }

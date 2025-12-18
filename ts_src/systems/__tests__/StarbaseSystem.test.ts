@@ -92,7 +92,7 @@ describe('StarbaseSystem', () => {
     test('should succeed docking when conditions are met', () => {
       const operational = starbaseSystem.getOperationalStarbases();
       if (operational.length > 0) {
-        const { coord, starbase } = operational[0];
+        const { coord } = operational[0];
         const playerPos = { x: 0, y: 0, z: 0 }; // Same position as starbase
         const gameState = gameStateManager.getGameState();
         

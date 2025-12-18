@@ -1,4 +1,3 @@
-import Phaser from 'phaser';
 import { Vector3D } from '@utils/Types';
 import { SectorCoordinate } from '@/types/GalaxyTypes';
 import { STARBASE_ATTACK_TIMER } from '@utils/Constants';
