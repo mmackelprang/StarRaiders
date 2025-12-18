@@ -354,6 +354,18 @@ For questions about this PRD package or the Star Raiders recreation project, ple
 - **Best For**: Browser games, web deployment, rapid prototyping
 - **All code in**: `/ts_src` folder
 
+#### Quick Start for TypeScript Implementation:
+```bash
+# Install dependencies
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
 ### 2. Unity + C# (Recommended for Desktop/Console)
 - **Plan**: PROJECTPLAN.md (17 phases, partially documented)
 - **Advantages**: Professional engine, native performance, multi-platform export
@@ -366,3 +378,23 @@ For questions about this PRD package or the Star Raiders recreation project, ple
 - **TypeScript/Phaser 3**: Start with **TS_PROJECTPLAN.md** 🌐
 - **Unity/C#**: Start with **PROJECTPLAN.md** 🎮
 - **Both**: Review **Star_Raiders_PRD.md** for complete specifications! 🚀⭐
+
+## 📁 Project Structure (TypeScript Implementation)
+
+```
+/ts_src
+  /assets          # Game assets
+    /images        # Sprite sheets, UI elements
+    /audio         # Sound effects, music
+    /data          # JSON configs
+  /scenes          # Phaser scenes
+  /entities        # Game objects (Player, Enemy, etc.)
+  /systems         # Game systems (Galaxy, Input, Audio, etc.)
+  /ui              # UI components
+  /utils           # Utilities and constants
+  /config          # Game configuration
+  main.ts          # Application entry point
+index.html         # Entry HTML
+package.json       # Dependencies
+tsconfig.json      # TypeScript configuration
+```

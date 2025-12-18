@@ -1,0 +1,18 @@
+{
+  "name": "star-raiders-ts",
+  "version": "1.0.0",
+  "description": "TypeScript/Phaser 3 recreation of Star Raiders",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "phaser": "^3.80.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vite": "^5.0.0",
+    "@types/node": "^20.0.0"
+  }
+}
