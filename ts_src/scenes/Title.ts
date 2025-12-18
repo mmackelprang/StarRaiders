@@ -128,6 +128,17 @@ export class TitleScene extends Phaser.Scene {
     this.input.keyboard.on('keydown-ENTER', () => {
       this.startGame();
     });
+
+    // DEBUG: Test scenes
+    this.input.keyboard.on('keydown-THREE', () => {
+      Debug.log('Opening 3D Vector Render Test');
+      this.scene.start('VectorRenderTest');
+    });
+
+    this.input.keyboard.on('keydown-NINE', () => {
+      Debug.log('Opening Combat View Test');
+      this.scene.start('CombatView', { direction: 'FORE' });
+    });
   }
 
   private updateSelection(): void {
@@ -157,8 +168,13 @@ export class TitleScene extends Phaser.Scene {
     const gameStateManager = GameStateManager.getInstance();
     gameStateManager.startNewGame(difficulty);
 
-    // Transition to galactic chart (or later to gameplay scene)
-    this.scene.start('GalacticChart');
+    // Initialize galaxy
+    const GalaxyManager = require('@systems/GalaxyManager').GalaxyManager;
+    const galaxyManager = GalaxyManager.getInstance();
+    galaxyManager.initializeGalaxy(difficulty);
+
+    // Start in combat view (fore)
+    this.scene.start('CombatView', { direction: 'FORE' });
   }
 
   update(time: number, delta: number): void {

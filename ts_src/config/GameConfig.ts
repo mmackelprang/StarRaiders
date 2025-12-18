@@ -6,6 +6,8 @@ import { RankingScene } from '@scenes/Ranking';
 import { StarfieldTestScene } from '@scenes/StarfieldTest';
 import { GalacticChartTestScene } from '@scenes/GalacticChartTest';
 import { GalacticChartScene } from '@scenes/GalacticChart';
+import { VectorRenderTestScene } from '@scenes/VectorRenderTest';
+import { CombatViewScene } from '@scenes/CombatView';
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -33,7 +35,9 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     GameOverScene,
     RankingScene,
     GalacticChartScene,
+    CombatViewScene,
     StarfieldTestScene,
-    GalacticChartTestScene
+    GalacticChartTestScene,
+    VectorRenderTestScene
   ]
 };
