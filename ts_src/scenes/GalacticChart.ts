@@ -226,9 +226,8 @@ export class GalacticChartScene extends Phaser.Scene {
 
   private closeChart(): void {
     this.gameStateManager.setState(GameStateType.PLAYING);
-    this.scene.stop();
-    // Resume game scene (will be implemented when we have a game scene)
-    console.log('Closing chart...');
+    // Return to combat view
+    this.scene.start('CombatView', { direction: 'FORE' });
   }
 
   private initiateHyperspace(): void {
