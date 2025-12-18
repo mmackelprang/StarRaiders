@@ -36,6 +36,23 @@ export class CombatViewScene extends Phaser.Scene {
   private positionIndicators!: Phaser.GameObjects.Graphics;
   private statusBar!: Phaser.GameObjects.Text;
   private pesclrDisplay!: Phaser.GameObjects.Text;
+  
+  // Lock indicator text elements (reused to prevent memory leaks)
+  private lockLabels: Phaser.GameObjects.Text[] = [];
+  private rangeDisplay!: Phaser.GameObjects.Text;
+  private positionLabels: Phaser.GameObjects.Text[] = [];
+  private pesclrTexts: Phaser.GameObjects.Text[] = [];
+  
+  // Graphics pool for torpedo rendering
+  private torpedoGraphics: Phaser.GameObjects.Graphics[] = [];
+  private torpedoGraphicsIndex: number = 0;
+  
+  // Tracking computer HUD overlay
+  private trackingComputerGraphics!: Phaser.GameObjects.Graphics;
+  
+  // Shield effect
+  private shieldEffectGraphics!: Phaser.GameObjects.Graphics;
+  private shieldPulseTime: number = 0;
 
   // Lock status
   private hLock: boolean = false;
@@ -74,6 +91,8 @@ export class CombatViewScene extends Phaser.Scene {
     this.createPositionIndicators();
     this.createStatusBar();
     this.createPESCLRDisplay();
+    this.createTrackingComputerHUD();
+    this.createShieldEffect();
 
     // Create test enemies for demonstration
     this.createTestEnemies();
@@ -103,6 +122,39 @@ export class CombatViewScene extends Phaser.Scene {
 
   private createLockIndicators(): void {
     this.lockIndicators = this.add.graphics();
+    
+    const centerX = this.scale.width / 2;
+    const bottomY = this.scale.height - 80;
+    const spacing = 200;
+    
+    // Create reusable text labels
+    // H-Lock label
+    this.lockLabels[0] = this.add.text(centerX - spacing, bottomY + 30, '(H-LOCK)', {
+      fontSize: '14px',
+      color: '#FFFFFF',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
+    
+    // Range label
+    this.lockLabels[1] = this.add.text(centerX, bottomY + 30, '(RANGE)', {
+      fontSize: '14px',
+      color: '#FFFFFF',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
+    
+    // V-Lock label
+    this.lockLabels[2] = this.add.text(centerX + spacing, bottomY + 30, '(V-LOCK)', {
+      fontSize: '14px',
+      color: '#FFFFFF',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
+    
+    // Range display
+    this.rangeDisplay = this.add.text(centerX, bottomY - 30, 'R: 0', {
+      fontSize: '18px',
+      color: '#FFFFFF',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
   }
 
   private drawLockIndicators(): void {
@@ -114,35 +166,17 @@ export class CombatViewScene extends Phaser.Scene {
 
     // H-Lock (left)
     this.drawCrosshair(centerX - spacing, bottomY, this.hLock);
-    this.add.text(centerX - spacing, bottomY + 30, '(H-LOCK)', {
-      fontSize: '14px',
-      color: '#FFFFFF',
-      fontFamily: 'monospace',
-    }).setOrigin(0.5);
 
     // Range Lock (center)
     this.drawCrosshair(centerX, bottomY, this.rangeLock);
-    this.add.text(centerX, bottomY + 30, '(RANGE)', {
-      fontSize: '14px',
-      color: '#FFFFFF',
-      fontFamily: 'monospace',
-    }).setOrigin(0.5);
 
-    // Range display
+    // Update range display
     const rangeColor = this.getRangeColor();
-    this.add.text(centerX, bottomY - 30, `R: ${Math.floor(this.targetRange)}`, {
-      fontSize: '18px',
-      color: rangeColor,
-      fontFamily: 'monospace',
-    }).setOrigin(0.5);
+    this.rangeDisplay.setText(`R: ${Math.floor(this.targetRange)}`);
+    this.rangeDisplay.setColor(rangeColor);
 
     // V-Lock (right)
     this.drawCrosshair(centerX + spacing, bottomY, this.vLock);
-    this.add.text(centerX + spacing, bottomY + 30, '(V-LOCK)', {
-      fontSize: '14px',
-      color: '#FFFFFF',
-      fontFamily: 'monospace',
-    }).setOrigin(0.5);
   }
 
   private drawCrosshair(x: number, y: number, locked: boolean): void {
@@ -172,6 +206,23 @@ export class CombatViewScene extends Phaser.Scene {
 
   private createPositionIndicators(): void {
     this.positionIndicators = this.add.graphics();
+    
+    const bottomY = this.scale.height - 140;
+    const leftX = 100;
+    const rightX = this.scale.width - 100;
+    
+    // Create reusable position labels
+    this.positionLabels[0] = this.add.text(leftX, bottomY + 25, '(H-POS)', {
+      fontSize: '12px',
+      color: '#FFFFFF',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
+    
+    this.positionLabels[1] = this.add.text(rightX, bottomY + 25, '(V-POS)', {
+      fontSize: '12px',
+      color: '#FFFFFF',
+      fontFamily: 'monospace',
+    }).setOrigin(0.5);
   }
 
   private drawPositionIndicators(): void {
@@ -189,11 +240,6 @@ export class CombatViewScene extends Phaser.Scene {
       this.positionIndicators.fillStyle(0xffffff, 1);
       this.positionIndicators.fillCircle(leftX, bottomY, 10);
     }
-    this.add.text(leftX, bottomY + 25, '(H-POS)', {
-      fontSize: '12px',
-      color: '#FFFFFF',
-      fontFamily: 'monospace',
-    }).setOrigin(0.5);
 
     // V-Position indicator (right)
     const vFilled = Math.abs(this.vLock ? 1 : 0);
@@ -203,11 +249,6 @@ export class CombatViewScene extends Phaser.Scene {
       this.positionIndicators.fillStyle(0xffffff, 1);
       this.positionIndicators.fillCircle(rightX, bottomY, 10);
     }
-    this.add.text(rightX, bottomY + 25, '(V-POS)', {
-      fontSize: '12px',
-      color: '#FFFFFF',
-      fontFamily: 'monospace',
-    }).setOrigin(0.5);
   }
 
   private createStatusBar(): void {
@@ -233,8 +274,131 @@ export class CombatViewScene extends Phaser.Scene {
   }
 
   private createPESCLRDisplay(): void {
-    // PESCLR system status display - placeholder
-    this.pesclrDisplay = this.add.text(0, 0, '', { fontSize: '1px' });
+    const startX = this.scale.width - 150;
+    const startY = 60;
+    const spacing = 25;
+    
+    // Create reusable text objects for PESCLR display
+    const systemLetters = ['P', 'E', 'S', 'C', 'L', 'R'];
+    
+    for (let i = 0; i < systemLetters.length; i++) {
+      const text = this.add.text(
+        startX + (i * spacing),
+        startY,
+        systemLetters[i],
+        {
+          fontSize: '20px',
+          color: '#00FF00',
+          fontFamily: 'monospace',
+          fontStyle: 'bold',
+        }
+      );
+      text.setDepth(1000); // Ensure it's on top
+      this.pesclrTexts.push(text);
+    }
+  }
+  
+  private createTrackingComputerHUD(): void {
+    this.trackingComputerGraphics = this.add.graphics();
+    this.trackingComputerGraphics.setDepth(5); // Above starfield, below enemies
+  }
+  
+  private drawTrackingComputerHUD(): void {
+    this.trackingComputerGraphics.clear();
+    
+    const gameState = this.gameStateManager.getGameState();
+    if (!gameState.player.computerActive) {
+      return; // Don't draw if computer is off
+    }
+    
+    const centerX = this.scale.width / 2;
+    const centerY = this.scale.height / 2;
+    const color = 0x00ff00;
+    const alpha = 0.3;
+    
+    // Draw targeting grid
+    this.trackingComputerGraphics.lineStyle(1, color, alpha);
+    
+    // Vertical lines
+    const gridSpacing = 80;
+    for (let i = -3; i <= 3; i++) {
+      const x = centerX + i * gridSpacing;
+      this.trackingComputerGraphics.lineBetween(x, 0, x, this.scale.height);
+    }
+    
+    // Horizontal lines
+    for (let i = -3; i <= 3; i++) {
+      const y = centerY + i * gridSpacing;
+      this.trackingComputerGraphics.lineBetween(0, y, this.scale.width, y);
+    }
+    
+    // Draw center crosshair
+    this.trackingComputerGraphics.lineStyle(2, color, 0.6);
+    const crosshairSize = 30;
+    
+    // Center cross
+    this.trackingComputerGraphics.lineBetween(
+      centerX - crosshairSize, centerY,
+      centerX + crosshairSize, centerY
+    );
+    this.trackingComputerGraphics.lineBetween(
+      centerX, centerY - crosshairSize,
+      centerX, centerY + crosshairSize
+    );
+    
+    // Center circle
+    this.trackingComputerGraphics.strokeCircle(centerX, centerY, 20);
+  }
+  
+  private createShieldEffect(): void {
+    this.shieldEffectGraphics = this.add.graphics();
+    this.shieldEffectGraphics.setDepth(100); // On top of everything
+  }
+  
+  private drawShieldEffect(deltaSeconds: number): void {
+    this.shieldEffectGraphics.clear();
+    
+    const gameState = this.gameStateManager.getGameState();
+    if (!gameState.player.shieldsActive) {
+      return; // Don't draw if shields are off
+    }
+    
+    // Update pulse animation
+    this.shieldPulseTime += deltaSeconds;
+    
+    // Pulsing alpha for shimmer effect (between 0.05 and 0.15)
+    const pulseAlpha = 0.1 + Math.sin(this.shieldPulseTime * 3) * 0.05;
+    
+    // Draw blue glow around screen edges
+    const edgeWidth = 40;
+    const width = this.scale.width;
+    const height = this.scale.height;
+    
+    // Create gradient effect using multiple rectangles
+    const steps = 10;
+    for (let i = 0; i < steps; i++) {
+      const progress = i / steps;
+      const currentAlpha = pulseAlpha * (1 - progress);
+      const currentEdge = edgeWidth * progress;
+      
+      this.shieldEffectGraphics.lineStyle(2, 0x4488ff, currentAlpha);
+      
+      // Draw rectangle border
+      this.shieldEffectGraphics.strokeRect(
+        currentEdge,
+        currentEdge,
+        width - currentEdge * 2,
+        height - currentEdge * 2
+      );
+    }
+    
+    // Add corner highlights
+    this.shieldEffectGraphics.fillStyle(0x4488ff, pulseAlpha * 0.5);
+    const cornerSize = 20;
+    this.shieldEffectGraphics.fillTriangle(0, 0, cornerSize, 0, 0, cornerSize);
+    this.shieldEffectGraphics.fillTriangle(width, 0, width - cornerSize, 0, width, cornerSize);
+    this.shieldEffectGraphics.fillTriangle(0, height, cornerSize, height, 0, height - cornerSize);
+    this.shieldEffectGraphics.fillTriangle(width, height, width - cornerSize, height, width, height - cornerSize);
   }
 
   private updatePESCLRDisplay(): void {
@@ -242,37 +406,14 @@ export class CombatViewScene extends Phaser.Scene {
     const gameState = this.gameStateManager.getGameState();
     const systems = gameState.player.systems;
     
-    const startX = this.scale.width - 150;
-    const startY = 60;
-    const spacing = 25;
-    
-    // Create/update individual colored text for each system
-    const systemLetters = ['P', 'E', 'S', 'C', 'L', 'R'];
     const systemKeys: (keyof typeof systems)[] = ['photon', 'engines', 'shields', 'computer', 'longRange', 'radio'];
     
-    // We need to destroy and recreate these each frame for color updates
-    // In a real implementation, we'd cache these and only update when status changes
-    for (let i = 0; i < systemLetters.length; i++) {
-      const letter = systemLetters[i];
+    // Update colors of existing text objects
+    for (let i = 0; i < systemKeys.length; i++) {
       const key = systemKeys[i];
       const status = systems[key];
       const color = pesclrSystem.getSystemColor(status);
-      
-      const text = this.add.text(
-        startX + (i * spacing),
-        startY,
-        letter,
-        {
-          fontSize: '20px',
-          color: color,
-          fontFamily: 'monospace',
-          fontStyle: 'bold',
-        }
-      );
-      text.setDepth(1000); // Ensure it's on top
-      
-      // Auto-destroy after this frame
-      this.time.delayedCall(100, () => text.destroy());
+      this.pesclrTexts[i].setColor(color);
     }
   }
 
@@ -524,6 +665,12 @@ export class CombatViewScene extends Phaser.Scene {
     
     // Update PESCLR display
     this.updatePESCLRDisplay();
+    
+    // Draw tracking computer HUD overlay
+    this.drawTrackingComputerHUD();
+    
+    // Draw shield effect
+    this.drawShieldEffect(deltaSeconds);
   }
 
   private updateLockStatus(): void {
@@ -543,17 +690,37 @@ export class CombatViewScene extends Phaser.Scene {
   private renderTorpedoes(): void {
     const torpedoes = this.combatSystem.getTorpedoes();
     
+    // Reset graphics index for this frame
+    this.torpedoGraphicsIndex = 0;
+    
+    // Hide all torpedo graphics first
+    for (const graphics of this.torpedoGraphics) {
+      graphics.clear();
+      graphics.setVisible(false);
+    }
+    
     for (const torpedo of torpedoes) {
       // Project torpedo position to screen
       const screenPos = this.vectorRenderer.projectToScreen(torpedo.position);
       
       if (screenPos) {
+        // Get or create graphics object from pool
+        let graphics: Phaser.GameObjects.Graphics;
+        if (this.torpedoGraphicsIndex >= this.torpedoGraphics.length) {
+          graphics = this.add.graphics();
+          graphics.setDepth(50);
+          this.torpedoGraphics.push(graphics);
+        } else {
+          graphics = this.torpedoGraphics[this.torpedoGraphicsIndex];
+          graphics.clear();
+        }
+        this.torpedoGraphicsIndex++;
+        
         // Calculate torpedo endpoint (for trail effect)
         const trailLength = torpedo.getVisualLength(Math.abs(torpedo.position.z));
         const endX = screenPos.x - (torpedo.direction === TorpedoDirection.FORE ? trailLength : -trailLength);
         
         // Draw torpedo as a bright line
-        const graphics = this.add.graphics();
         graphics.lineStyle(3, 0xffffff, 1.0);
         graphics.lineBetween(endX, screenPos.y, screenPos.x, screenPos.y);
         
@@ -561,9 +728,7 @@ export class CombatViewScene extends Phaser.Scene {
         graphics.lineStyle(6, 0xffffff, 0.3);
         graphics.lineBetween(endX, screenPos.y, screenPos.x, screenPos.y);
         
-        // Clean up after rendering
-        graphics.setDepth(50);
-        this.time.delayedCall(100, () => graphics.destroy());
+        graphics.setVisible(true);
       }
     }
   }

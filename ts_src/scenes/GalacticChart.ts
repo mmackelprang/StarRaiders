@@ -24,6 +24,8 @@ export class GalacticChartScene extends Phaser.Scene {
     y: Math.floor(GALAXY_SIZE / 2) 
   };
   private cursorPulse: number = 0;
+  private lastMoveTime: number = 0;
+  private readonly moveDelay: number = 150; // milliseconds between moves
 
   constructor() {
     super({ key: 'GalacticChart' });
@@ -169,6 +171,9 @@ export class GalacticChartScene extends Phaser.Scene {
       'Arrow Keys: Move cursor',
       'H: Hyperspace',
       'G/F: Close chart',
+      '',
+      'Selected Sector:',
+      '', // Will be updated in update()
     ].join('\n');
 
     this.hudText = this.add.text(hudX, hudY, hudContent, {
@@ -199,6 +204,11 @@ export class GalacticChartScene extends Phaser.Scene {
     this.inputManager.on(InputAction.VIEW_FORE, () => {
       this.closeChart();
     });
+    
+    // Switch to Long Range Scan
+    this.inputManager.on(InputAction.LONG_RANGE_SCAN, () => {
+      this.scene.start('LongRangeScan');
+    });
 
     // Hyperspace to selected sector
     this.inputManager.on(InputAction.HYPERSPACE, () => {
@@ -219,6 +229,12 @@ export class GalacticChartScene extends Phaser.Scene {
   }
 
   private moveCursor(dx: number, dy: number): void {
+    const now = Date.now();
+    if (now - this.lastMoveTime < this.moveDelay) {
+      return; // Debounce rapid moves
+    }
+    this.lastMoveTime = now;
+    
     this.cursorPosition.x = Phaser.Math.Clamp(this.cursorPosition.x + dx, 0, GALAXY_SIZE - 1);
     this.cursorPosition.y = Phaser.Math.Clamp(this.cursorPosition.y + dy, 0, GALAXY_SIZE - 1);
     this.updateCursor();
@@ -239,5 +255,51 @@ export class GalacticChartScene extends Phaser.Scene {
     this.inputManager.update();
     this.cursorPulse += delta / 1000; // Update pulse animation
     this.updateCursor();
+    this.updateSectorInfo();
+  }
+  
+  private updateSectorInfo(): void {
+    const galaxy = this.galaxyManager.getGalaxyData();
+    const gameState = this.gameStateManager.getGameState();
+    const sector = galaxy.sectors[this.cursorPosition.x][this.cursorPosition.y];
+    
+    // Build sector info
+    const sectorInfo = [];
+    
+    if (sector.enemies.length === 0 && !sector.starbase) {
+      sectorInfo.push('Empty');
+    } else {
+      if (sector.enemies.length > 0) {
+        sectorInfo.push(`Enemies: ${sector.enemies.length}`);
+      }
+      if (sector.starbase) {
+        const status = sector.starbase.underAttack ? ' (UNDER ATTACK)' : '';
+        sectorInfo.push(`Starbase${status}`);
+      }
+    }
+    
+    if (sector.hasPlayer) {
+      sectorInfo.push('Current Location');
+    }
+    
+    // Update HUD text
+    const hudContent = [
+      'GALACTIC CHART',
+      '',
+      `Difficulty: ${gameState.difficulty}`,
+      `Enemies: ${galaxy.totalEnemies - galaxy.enemiesDestroyed}/${galaxy.totalEnemies}`,
+      `Starbases: ${galaxy.totalStarbases - galaxy.starbasesDestroyed}/${galaxy.totalStarbases}`,
+      `Kills: ${gameState.player.kills}`,
+      '',
+      'Controls:',
+      'Arrow Keys: Move cursor',
+      'H: Hyperspace',
+      'G/F: Close chart',
+      '',
+      `Selected Sector (${this.cursorPosition.x},${this.cursorPosition.y}):`,
+      sectorInfo.join(', ') || 'Empty',
+    ].join('\n');
+    
+    this.hudText.setText(hudContent);
   }
 }
