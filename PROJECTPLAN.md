@@ -62,25 +62,62 @@ Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPr
 Implement GameStateManager in Unity per PRD Sections 6 and 23. States: Title, Playing, Paused, Hyperspace, GameOver. Provide events for state changes, pause/resume, hyperspace start/end. Add simple UI to display current state for smoke testing. Include EditMode tests for transitions.
 ```
 
-## Phase 3 – Input & Controls Mapping
+## Phase 3 – Input & Controls Mapping 📝 DOCUMENTED
 **Goal:** Modern input bindings matching classic controls.  
 **Tasks:** Configure Unity Input System actions (movement, fire, shields, computer, view switches, speed 0-9, hyperspace, long-range scan). Support keyboard/gamepad; allow remapping.  
+**Status:** 📝 Documented - See PHASE3_INPUT_CONTROLS_GUIDE.md for complete implementation guide  
+**Deliverables:**
+- Input Actions asset with 15+ actions (gameplay + UI)
+- InputController singleton with event system
+- Speed controls (0-9) with event dispatching
+- View switches (F/A) and screen toggles (G/L/H)
+- Weapon fire and shield/computer toggles
+- Keyboard and gamepad support
+- Optional remapping UI implementation
+- Integration with GameStateManager for pause
+- EditMode tests for input validation
+
 **AI Agent Prompt:**  
 ```
 Define Input Actions asset using controls listed in QUICKSTART_DEVELOPER_GUIDE.md Feature Checklist/Controls and PRD Section 19 (Controls and Input). Map keys (0-9, F, A, G, L, H, T, S, Fire, Joystick/Arrows). Expose an InputController that raises events with normalized values. Include UI for remapping (optional toggle). Provide tests for action bindings (EditMode).
 ```
 
-## Phase 4 – Galaxy Data Model & Persistence
+## Phase 4 – Galaxy Data Model & Persistence 📝 DOCUMENTED
 **Goal:** Represent 16×16 galaxy with entities and serialization.  
 **Tasks:** ScriptableObject for galaxy config; data structs for sectors, starbases, enemies; utilities for Manhattan distance and threats; seed-based initialization; save/load stubs.  
+**Status:** 📝 Documented - See PHASE4-5_GALAXY_AND_RENDERING_GUIDE.md (Phase 4 section)  
+**Deliverables:**
+- SectorData structure with types, starbases, enemies
+- GalaxyConfig ScriptableObject with difficulty parameters
+- GalaxyManager singleton for 16×16 grid management
+- Manhattan distance calculation utility
+- CheckStarbaseThreats() for detecting surrounded bases
+- Seed-based procedural generation
+- Enemy distribution (60% Fighters, 30% Cruisers, 10% Basestars)
+- GalaxySaveData structure for JSON serialization
+- EditMode tests for distance and threat calculations
+
 **AI Agent Prompt:**  
 ```
 Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART_DEVELOPER_GUIDE.md Game Statistics/Core Systems overview. Include sector types, player location, starbases, enemies. Implement distance calculations and threat detection (CheckStarbaseThreats noted in the Core Systems overview). Add JSON save/load placeholders. Provide EditMode tests for generation and threat rules.
 ```
 
-## Phase 5 – Rendering Foundations & HUD Shell
+## Phase 5 – Rendering Foundations & HUD Shell 📝 DOCUMENTED
 **Goal:** Build camera rig, starfield, and HUD scaffolding.  
 **Tasks:** Set up cockpit camera with URP, starfield particle system, UI canvas with HUD placeholders (energy, system status, crosshair, speed). Use colors/layout from visual mockups/reference.  
+**Status:** 📝 Documented - See PHASE4-5_GALAXY_AND_RENDERING_GUIDE.md (Phase 5 section)  
+**Deliverables:**
+- CameraController with Fore/Aft view switching
+- StarfieldGenerator with 1000+ stars using ParticleSystem
+- HUDManager for all UI elements
+- Energy bar and text display
+- Speed indicator
+- PESCLR status indicators (color-coded: blue/yellow/red)
+- Crosshair positioning
+- Lock indicator placeholders (horizontal/vertical/range)
+- Color scheme from visual reference (operational=blue, damaged=yellow, destroyed=red)
+- TextMeshPro integration
+
 **AI Agent Prompt:**  
 ```
 Implement rendering baseline: cockpit camera, starfield particle effect, and HUD shell (energy meter, PESCLR indicators, crosshair, speed). Follow star_raiders_visual_mockups.txt and star_raiders_visual_reference.txt for layout/colors. Use Unity UI prefabs and TextMeshPro. No gameplay logic yet; just visual placeholders for integration.
