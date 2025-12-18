@@ -123,97 +123,239 @@ Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART_DEVELOPER_GUI
 Implement rendering baseline: cockpit camera, starfield particle effect, and HUD shell (energy meter, PESCLR indicators, crosshair, speed). Follow star_raiders_visual_mockups.txt and star_raiders_visual_reference.txt for layout/colors. Use Unity UI prefabs and TextMeshPro. No gameplay logic yet; just visual placeholders for integration.
 ```
 
-## Phase 6 – Navigation & Ship Physics
+## Phase 6 – Navigation & Ship Physics 📝 DOCUMENTED
 **Goal:** Player ship movement and inertia.  
 **Tasks:** Implement ship controller with acceleration, velocity capped per speed level, orientation, braking; integrate energy consumption hooks. Support Fore/Aft view switching and basic collision bounds.  
+**Status:** 📝 Documented - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 6 section)  
+**Deliverables:**
+- ShipController with 10 speed levels (0-9)
+- Speed-to-velocity mapping (0 to 43 metrons/sec)
+- Acceleration and inertial damping physics
+- Turn rate and orientation control
+- Energy consumption per speed level
+- Fore/Aft view switching integration
+- Position and velocity event broadcasting
+
 **AI Agent Prompt:**  
 ```
 Build ShipController for player movement per PRD Sections 10 & 15 and technical_notes Sections 10 & 13. Implement speed levels 0-9, acceleration curves, inertial damping, and view switching (Fore/Aft). Emit events for position/velocity to other systems. Add PlayMode test covering speed ramp and view toggles.
 ```
 
-## Phase 7 – Hyperspace System
+## Phase 7 – Hyperspace System 📝 DOCUMENTED
 **Goal:** Sector-to-sector travel with manual/auto modes.  
 **Tasks:** Implement hyperspace charge, course plotting, manual alignment (Commander/Warrior), energy cost multipliers, jump animation, failure cases, and arrival positioning.  
+**Status:** 📝 Documented - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 7 section)  
+**Deliverables:**
+- HyperspaceController with auto/manual modes
+- Energy cost formula (100 × distance × difficulty multiplier)
+- Manual navigation with crosshair drift
+- Difficulty multipliers (1.0×, 1.2×, 1.5×, 2.0×)
+- Failed navigation handling (random adjacent sector)
+- Jump animation sequence (3 seconds)
+- GameStateManager integration
+- Sector arrival and player position update
+
 **AI Agent Prompt:**  
 ```
 Implement HyperspaceController per PRD Section 15 and QUICKSTART difficulty table. Support auto (Novice/Pilot) and manual (Warrior/Commander) alignment. Include energy cost = 100 × distance × difficulty multiplier, jump timer, cancel flow, and arrival placement in destination sector. Connect to GameStateManager. Add PlayMode test for cost calculation and state transitions.
 ```
 
-## Phase 8 – Combat & Weapons
+## Phase 8 – Combat & Weapons 📝 DOCUMENTED
 **Goal:** Photon torpedo firing, lock indicators, hit detection.  
 **Tasks:** Torpedo projectiles, lock status (horizontal/vertical/range), optimal range checks, damage application stubs, muzzle flash/sound hooks.  
+**Status:** 📝 Documented - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 8 section)  
+**Deliverables:**
+- CombatSystem with torpedo firing
+- Three lock indicators (horizontal, vertical, range)
+- Optimal range detection (30-70 metrons)
+- Torpedo speed (50 m/s) and lifetime (5 sec)
+- Energy cost per shot (5 units)
+- Target tracking and lock calculation
+- Torpedo pooling and cleanup
+- Hit detection infrastructure
+
 **AI Agent Prompt:**  
 ```
 Create CombatSystem per PRD Section 12 and technical_notes Section 7. Implement FireTorpedo, lock indicator calculations, hit detection with colliders or raycasts, and optimal range checks (30-70 metrons). Provide damage events for PESCLR. Add PlayMode tests for lock logic and projectile lifetime.
 ```
 
-## Phase 9 – PESCLR Damage System
+## Phase 9 – PESCLR Damage System 📝 DOCUMENTED
 **Goal:** Ship systems damage states and HUD integration.  
 **Tasks:** Manage states (Operational/Damaged/Destroyed) for P,E,S,C,L,R; degradation impacts on subsystems (e.g., shields absorb less, computer accuracy drop); repair at starbase; HUD indicator updates.  
+**Status:** 📝 Documented - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 9 section)  
+**Deliverables:**
+- PESCLRSystem managing all 6 systems
+- Three-state model (Operational/Damaged/Destroyed)
+- Damage progression logic
+- System efficiency calculations (100%/50%/0%)
+- Effects on subsystems (torpedoes, engines, shields, computer, scanner, radio)
+- RepairAllSystems() for starbase docking
+- HUD indicator integration
+- EditMode tests for damage states
+
 **AI Agent Prompt:**  
 ```
 Implement PesclrSystem per PRD Section 11 and QUICKSTART Section 6. Track states and effects on subsystems (e.g., Shield efficiency, Computer lock accuracy, Engines speed cap). Add RepairAllSystems at starbase. Update HUD indicators. Provide EditMode tests for state transitions and effect calculations.
 ```
 
-## Phase 10 – Enemy AI & Galaxy Activity
+## Phase 10 – Enemy AI & Galaxy Activity 📝 DOCUMENTED
 **Goal:** Enemy spawning, movement, and behaviors.  
 **Tasks:** Implement AI behaviors for Fighters, Cruisers, Basestars (movement, attack, evasion), group coordination, starbase attack countdown (100-centon), difficulty scaling. Update galaxy map in real time.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 10 section)  
+**Deliverables:**
+- EnemyAI script for three enemy types (Fighter, Cruiser, Basestar)
+- Individual movement and attack behaviors
+- Group coordination (squadron movement)
+- Starbase targeting with 100-centon countdown
+- Difficulty scaling (speed multipliers: 0.5×, 0.75×, 1.0×, 1.25×)
+- Real-time galaxy map updates
+- PlayMode tests for pursuit and countdown logic
+
 **AI Agent Prompt:**  
 ```
 Develop EnemyAI per PRD Section 13 and technical_notes Sections 5-6. Include per-type behaviors, group coordination, starbase targeting with 100-centon countdowns, and difficulty multipliers (speed, aggression). Integrate with GalaxyModel updates. Add PlayMode simulations verifying countdown triggers and basic pursuit.
 ```
 
-## Phase 11 – Starbase & Resource Systems
+## Phase 11 – Starbase & Resource Systems 📝 DOCUMENTED
 **Goal:** Refuel/repair loop and starbase defense.  
 **Tasks:** Implement docking/refuel flows, repair of PESCLR, energy restore, invulnerability windows, starbase destruction states, scoring/penalties.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 11 section)  
+**Deliverables:**
+- StarbaseSystem with docking mechanics
+- Automatic docking when velocity = 0 in starbase sector
+- Full energy refuel (~7000 units)
+- RepairAllSystems() integration with PESCLR
+- 100-centon countdown when surrounded
+- Starbase destruction handling
+- Mission failure check (no starbases remaining)
+- Scoring penalties for lost starbases
+
 **AI Agent Prompt:**  
 ```
 Implement StarbaseSystem per PRD Section 14 and energy rules in Section 16. Support docking interactions, full refuel, RepairAllSystems, and starbase destruction consequences. Tie into galaxy threats and scoring. Add PlayMode test for docking/refuel cycle.
 ```
 
-## Phase 12 – UI Screens & Flows
+## Phase 12 – UI Screens & Flows 📝 DOCUMENTED
 **Goal:** Complete 8 screens with navigation.  
 **Tasks:** Title with difficulty selection; Galactic Chart overlay; Fore/Aft view; Long-Range Scan; Hyperspace view; Game Over; Ranking. Use visual mockups and `/images`.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 12 section)  
+**Deliverables:**
+- Title screen with difficulty selection (4 levels)
+- Galactic Chart overlay (16×16 grid visualization)
+- Fore and Aft cockpit views
+- Long-Range Scan display (3×3 local sectors)
+- Hyperspace navigation interface
+- Game Over screen with mission summary
+- Ranking screen with 20-tier display
+- Color scheme implementation (blue/yellow/red for system states)
+- Key binding integration (G, L, H, F, A)
+
 **AI Agent Prompt:**  
 ```
 Build UI screens per PRD Sections 8-9 and star_raiders_visual_mockups.txt. Implement Title (difficulty selection), Galactic Chart overlay (G), Fore/Aft cockpits, Long-Range Scan (L), Hyperspace view (H), Game Over, Ranking screen with 20 titles. Wire key bindings and GameStateManager transitions. Keep visual fidelity to star_raiders_visual_reference.txt palettes.
 ```
 
-## Phase 13 – Audio System
+## Phase 13 – Audio System 📝 DOCUMENTED
 **Goal:** Integrate SFX/music tied to gameplay.  
 **Tasks:** Audio manager, engine hum by velocity, torpedo fire, explosions, shield toggle, hyperspace, alerts, UI sounds; volume/mix settings.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 13 section)  
+**Deliverables:**
+- AudioManager expansion with 8+ audio assets
+- Engine hum with velocity-based pitch (0.8× to 2.0×)
+- Torpedo fire sound effect
+- Explosion sound effect
+- Shield toggle sound
+- Hyperspace warp sound
+- Starbase alert tones
+- UI click feedback sounds
+- Audio mixer groups for volume control
+- Settings integration
+
 **AI Agent Prompt:**  
 ```
 Implement AudioSystem per technical_notes "Audio System Architecture" section and PRD Section 20. Add audio events for engine (speed-based pitch), torpedo, explosions, shields, hyperspace, alert tones, and UI clicks. Provide mixer groups and volume controls. Smoke test with simple audio clips.
 ```
 
-## Phase 14 – Scoring, Ranking, and Session Flow
+## Phase 14 – Scoring, Ranking, and Session Flow 📝 DOCUMENTED
 **Goal:** Full scoring and rank calculation.  
 **Tasks:** Implement scoring per PRD Section 18, ranking table (20 tiers), mission end evaluation, difficulty modifiers, and persistence for last rank.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 14 section)  
+**Deliverables:**
+- ScoringSystem with enemy kill tracking
+- Points per enemy type (Fighter: 10, Cruiser: 30, Basestar: 50)
+- Starbase loss penalty (-100)
+- Energy efficiency bonus
+- Time completion bonus
+- Difficulty multipliers (1×, 1.5×, 2×, 3×)
+- 20-tier ranking system ("Galactic Cook" to "Star Commander Class 4")
+- Rank calculation and display
+- EditMode tests for rank thresholds
+
 **AI Agent Prompt:**  
 ```
 Implement ScoringAndRanking per PRD Section 18. Apply score rules for enemy kills, starbase losses, energy use, and time. Compute rank across 20 tiers and display on Ranking screen. Add EditMode tests for rank thresholds and difficulty modifiers.
 ```
 
-## Phase 15 – Save/Load, Settings, Accessibility
+## Phase 15 – Save/Load, Settings, Accessibility 📝 DOCUMENTED
 **Goal:** Modern quality-of-life features.  
 **Tasks:** Save/load slots (JSON), remapping persistence, graphics/audio settings, colorblind modes, resolution scaling, window/fullscreen toggle.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 15 section)  
+**Deliverables:**
+- SettingsManager with JSON serialization
+- GameSettings structure (volume, resolution, fullscreen, colorblind mode)
+- Save/load system for game state
+- Control binding persistence
+- Graphics settings (resolution, fullscreen, quality)
+- Audio settings (master volume, mixer controls)
+- Colorblind modes (protanopia, deuteranopia)
+- Text scaling options
+- High contrast mode
+- Settings UI implementation
+
 **AI Agent Prompt:**  
 ```
 Add SaveLoadSystem and Settings per PRD Sections 24 and modernizations in README FAQ. Persist control bindings, difficulty, video/audio settings, and accessibility toggles (colorblind palettes, scaling). Provide simple settings UI and basic serialization tests.
 ```
 
-## Phase 16 – Performance, Optimization, and QA
+## Phase 16 – Performance, Optimization, and QA 📝 DOCUMENTED
 **Goal:** Meet 60 FPS and stability targets.  
 **Tasks:** Profiling pass, pooling for projectiles/particles, culling, job system where needed; finalize automated tests per QUICKSTART Section 7; regression checklist.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 16 section)  
+**Deliverables:**
+- Object pooling for torpedoes and particles
+- Frustum culling implementation
+- LOD system for distant enemies
+- GC allocation reduction in Update loops
+- Unity Profiler analysis and optimization
+- Unit tests (80%+ coverage target)
+- Integration tests for gameplay loops
+- Performance benchmarks (60 FPS minimum)
+- Manual playthrough testing (all 4 difficulties)
+- Bug tracking and fixes
+- Regression test suite
+
 **AI Agent Prompt:**  
 ```
 Optimize and harden the project to meet performance targets (PRD Section 22, QUICKSTART Section 9). Add pooling for torpedoes/explosions, reduce GC, and implement automated tests from QUICKSTART Section 7 (unit + integration smoke). Deliver profiling report and bugfixes for critical issues.
 ```
 
-## Phase 17 – Packaging & Release
+## Phase 17 – Packaging & Release 📝 DOCUMENTED
 **Goal:** Ship-ready builds and documentation.  
 **Tasks:** Create build pipeline (Desktop default), produce README updates for running the game, include LICENSE/credits, final verification checklist.  
+**Status:** 📝 Documented - See PHASE10-17_FINAL_SYSTEMS_GUIDE.md (Phase 17 section)  
+**Deliverables:**
+- Build script for Windows, macOS, Linux
+- Unity Build Settings configuration
+- Pre-release verification checklist
+- Build testing on all target platforms
+- README updates with installation instructions
+- System requirements documentation
+- LICENSE file
+- Credits section
+- Release notes
+- Distribution packaging (ZIP/DMG/TAR.GZ)
+- Final repository tag
+
 **AI Agent Prompt:**  
 ```
 Set up build pipeline for desktop (Windows/macOS/Linux) in Unity CI or local. Verify all 8 screens, difficulties, and PESCLR behavior. Update README with run instructions and controls. Prepare final build artifacts and release notes summarizing scope and known issues.
