@@ -294,6 +294,8 @@ export interface ShipSystems {
   radio: SystemStatus;
 }
 
+// Note: Import SystemStatus and GALAXY_SIZE in GameStateManager for the implementation
+
 export interface PlayerState {
   position: Vector3D;
   velocity: number;
@@ -628,19 +630,21 @@ export class GameStateManager {
   }
 
   private createInitialPlayerState(): PlayerState {
+    const centerX = Math.floor(GALAXY_SIZE / 2);
+    const centerY = Math.floor(GALAXY_SIZE / 2);
     return {
       position: { x: 0, y: 0, z: 0 },
       velocity: 0,
       energy: 7000,
       kills: 0,
-      sector: { x: 8, y: 8 },
+      sector: { x: centerX, y: centerY },
       systems: {
-        photon: 'OPERATIONAL',
-        engines: 'OPERATIONAL',
-        shields: 'OPERATIONAL',
-        computer: 'OPERATIONAL',
-        longRange: 'OPERATIONAL',
-        radio: 'OPERATIONAL',
+        photon: SystemStatus.OPERATIONAL,
+        engines: SystemStatus.OPERATIONAL,
+        shields: SystemStatus.OPERATIONAL,
+        computer: SystemStatus.OPERATIONAL,
+        longRange: SystemStatus.OPERATIONAL,
+        radio: SystemStatus.OPERATIONAL,
       },
       shieldsActive: false,
       computerActive: false,

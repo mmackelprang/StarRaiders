@@ -220,8 +220,8 @@ export class GalaxyManager {
         };
         attempts++;
       } while (
-        (coord.x === centerX && coord.y === centerY) ||
-        placed.some(p => p.x === coord.x && p.y === coord.y) ||
+        ((coord.x === centerX && coord.y === centerY) ||
+        placed.some(p => p.x === coord.x && p.y === coord.y)) &&
         attempts < 100
       );
 
@@ -772,7 +772,10 @@ export class GalacticChartScene extends Phaser.Scene {
   private gridOffsetX: number = 100;
   private gridOffsetY: number = 100;
   
-  private cursorPosition: SectorCoordinate = { x: 8, y: 8 };
+  private cursorPosition: SectorCoordinate = { 
+    x: Math.floor(GALAXY_SIZE / 2), 
+    y: Math.floor(GALAXY_SIZE / 2) 
+  };
   private cursorPulse: number = 0;
 
   constructor() {
