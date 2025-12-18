@@ -4,8 +4,8 @@ import { Debug } from '@utils/Debug';
 /**
  * AudioManager - manages all game audio (sound effects and music)
  * 
- * This is a stub implementation that logs audio events.
- * In a full implementation, this would load and play actual audio files.
+ * Uses WAV audio files from ts_src/assets/audio for all sound effects.
+ * Integrates with Phaser's sound system for audio playback.
  * 
  * Phase 18 Implementation
  */
@@ -22,7 +22,7 @@ export class AudioManager {
   private music: Phaser.Sound.BaseSound | null = null;
 
   private constructor() {
-    Debug.log('AudioManager: Initialized (stub implementation)');
+    Debug.log('AudioManager: Initialized with WAV audio support');
   }
 
   static getInstance(): AudioManager {
@@ -34,8 +34,7 @@ export class AudioManager {
 
   initialize(scene: Phaser.Scene): void {
     this.scene = scene;
-    // In full implementation, would load audio files here
-    Debug.log('AudioManager: Scene initialized');
+    Debug.log('AudioManager: Scene initialized with Phaser sound system');
   }
 
   /**
@@ -49,9 +48,13 @@ export class AudioManager {
     const effectiveVolume = this.masterVolume * this.sfxVolume * volume;
     Debug.log(`AudioManager: Play SFX '${soundName}' at volume ${effectiveVolume.toFixed(2)}`);
 
-    // In full implementation:
-    // const sound = this.scene.sound.add(soundName);
-    // sound.play({ volume: effectiveVolume });
+    // Play the sound using Phaser's sound system
+    // Using scene.sound.play() for one-off sounds that auto-cleanup after playing
+    try {
+      this.scene.sound.play(soundName, { volume: effectiveVolume });
+    } catch (error) {
+      Debug.log(`AudioManager: Failed to play sound '${soundName}': ${error}`);
+    }
   }
 
   /**
@@ -65,10 +68,17 @@ export class AudioManager {
     const effectiveVolume = this.masterVolume * this.musicVolume;
     Debug.log(`AudioManager: Play music '${musicName}' (loop: ${loop}) at volume ${effectiveVolume.toFixed(2)}`);
 
-    // In full implementation:
-    // this.stopMusic();
-    // this.music = this.scene.sound.add(musicName);
-    // this.music.play({ volume: effectiveVolume, loop });
+    // Stop any currently playing music
+    this.stopMusic();
+    
+    // Play the music using Phaser's sound system
+    try {
+      this.music = this.scene.sound.add(musicName);
+      this.music.play({ volume: effectiveVolume, loop });
+    } catch (error) {
+      Debug.log(`AudioManager: Failed to play music '${musicName}': ${error}`);
+      this.music = null;
+    }
   }
 
   /**
@@ -77,7 +87,7 @@ export class AudioManager {
   stopMusic(): void {
     if (this.music) {
       Debug.log('AudioManager: Stop music');
-      // this.music.stop();
+      this.music.stop();
       this.music = null;
     }
   }
@@ -94,7 +104,8 @@ export class AudioManager {
   }
 
   playHit(): void {
-    this.playSFX('hit', 0.7);
+    // Use shield_impact for hit sound (no separate hit.wav file)
+    this.playSFX('shield_impact', 0.7);
   }
 
   playShieldImpact(): void {
@@ -109,19 +120,23 @@ export class AudioManager {
   }
 
   playShieldDeactivate(): void {
-    this.playSFX('shield_deactivate', 0.5);
+    // Use shield_activate for deactivate sound (no separate shield_deactivate.wav file)
+    this.playSFX('shield_activate', 0.5);
   }
 
   playComputerToggle(): void {
-    this.playSFX('computer_toggle', 0.4);
+    // Use shield_activate for computer toggle (no computer_toggle.wav file)
+    this.playSFX('shield_activate', 0.4);
   }
 
   playSystemDamage(): void {
-    this.playSFX('system_damage', 0.7);
+    // Use shield_impact for system damage (no system_damage.wav file)
+    this.playSFX('shield_impact', 0.7);
   }
 
   playSystemDestroyed(): void {
-    this.playSFX('system_destroyed', 0.8);
+    // Use explosion for system destroyed (no system_destroyed.wav file)
+    this.playSFX('explosion', 0.8);
   }
 
   /**
@@ -140,7 +155,8 @@ export class AudioManager {
   }
 
   playLockAchieved(): void {
-    this.playSFX('lock_achieved', 0.5);
+    // Use shield_activate for lock achieved (no lock_achieved.wav file)
+    this.playSFX('shield_activate', 0.5);
   }
 
   /**
@@ -151,7 +167,8 @@ export class AudioManager {
   }
 
   playCriticalEnergyAlert(): void {
-    this.playSFX('critical_energy_alert', 0.8);
+    // Use low_energy_alert for critical energy (no critical_energy_alert.wav file)
+    this.playSFX('low_energy_alert', 0.8);
   }
 
   playStarbaseAttackAlert(): void {
@@ -212,14 +229,10 @@ export class AudioManager {
   }
 
   /**
-   * Load audio assets (would be called in preload)
+   * Load audio assets (called in preload by AssetLoader)
    */
   preloadAssets(scene: Phaser.Scene): void {
-    Debug.log('AudioManager: Preloading audio assets (stub)');
-    
-    // In full implementation, would load audio files:
-    // scene.load.audio('torpedo_fire', 'assets/audio/torpedo_fire.ogg');
-    // scene.load.audio('explosion', 'assets/audio/explosion.ogg');
-    // etc.
+    Debug.log('AudioManager: Audio assets are preloaded by AssetLoader');
+    // Note: Audio files are loaded by AssetLoader.preloadAudio() in the Boot scene
   }
 }
