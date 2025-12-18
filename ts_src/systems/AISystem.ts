@@ -1,8 +1,9 @@
 import { Enemy } from '@entities/Enemy';
 import { Vector3D, SectorCoord } from '@utils/Types';
-import { EnemyType, GALAXY_SIZE } from '@utils/Constants';
+import { EnemyType, GALAXY_SIZE, DifficultyLevel } from '@utils/Constants';
 import { GalaxyManager } from './GalaxyManager';
 import { GameStateManager } from './GameStateManager';
+import { SquadronSystem, Squadron, SquadronObjective } from './SquadronSystem';
 import { Debug } from '@utils/Debug';
 
 /**
@@ -30,17 +31,29 @@ export interface AIController {
   aggressionLevel: number; // 0.0 to 1.0
   patrolPath: Vector3D[];
   patrolIndex: number;
+  squadronId: string | null; // Squadron membership
+}
+
+/**
+ * Difficulty multipliers for AI tuning
+ */
+interface DifficultyMultipliers {
+  aggression: number;
+  speed: number;
+  attackRate: number;
+  accuracy: number;
 }
 
 /**
  * Enemy AI System
  * Manages AI behaviors for all enemy types
  * 
- * Phase 13 Implementation
+ * Phase 13 & 14 Implementation
  */
 export class AISystem {
   private galaxyManager: GalaxyManager;
   private gameStateManager: GameStateManager;
+  private squadronSystem: SquadronSystem;
   private controllers: Map<string, AIController> = new Map();
 
   // AI parameters
@@ -54,24 +67,78 @@ export class AISystem {
 
   private readonly attackCooldownTime: number = 2.0; // seconds
 
+  // Difficulty multipliers
+  private difficultyMultipliers: DifficultyMultipliers;
+
   constructor() {
     this.galaxyManager = GalaxyManager.getInstance();
     this.gameStateManager = GameStateManager.getInstance();
+    this.squadronSystem = new SquadronSystem();
+    this.difficultyMultipliers = this.getDifficultyMultipliers();
+  }
+
+  /**
+   * Get difficulty multipliers based on current game difficulty
+   */
+  private getDifficultyMultipliers(): DifficultyMultipliers {
+    const gameState = this.gameStateManager.getGameState();
+    
+    switch (gameState.difficulty) {
+      case DifficultyLevel.NOVICE:
+        return {
+          aggression: 0.5,
+          speed: 0.8,
+          attackRate: 0.7,
+          accuracy: 0.6,
+        };
+      case DifficultyLevel.PILOT:
+        return {
+          aggression: 0.7,
+          speed: 0.9,
+          attackRate: 0.85,
+          accuracy: 0.75,
+        };
+      case DifficultyLevel.WARRIOR:
+        return {
+          aggression: 0.9,
+          speed: 1.0,
+          attackRate: 1.0,
+          accuracy: 0.9,
+        };
+      case DifficultyLevel.COMMANDER:
+        return {
+          aggression: 1.0,
+          speed: 1.1,
+          attackRate: 1.2,
+          accuracy: 1.0,
+        };
+      default:
+        return {
+          aggression: 0.7,
+          speed: 1.0,
+          attackRate: 1.0,
+          accuracy: 0.8,
+        };
+    }
   }
 
   /**
    * Register an enemy with the AI system
    */
   registerEnemy(enemy: Enemy, aggressionLevel: number = 0.7): void {
+    // Apply difficulty multiplier to aggression
+    const adjustedAggression = aggressionLevel * this.difficultyMultipliers.aggression;
+    
     const controller: AIController = {
       enemy,
       state: AIBehaviorState.IDLE,
       targetPosition: null,
       targetSector: null,
       attackCooldown: 0,
-      aggressionLevel,
+      aggressionLevel: adjustedAggression,
       patrolPath: [],
       patrolIndex: 0,
+      squadronId: null,
     };
 
     this.controllers.set(enemy.id, controller);
@@ -93,11 +160,21 @@ export class AISystem {
   update(deltaTime: number, playerPosition: Vector3D, playerSector: SectorCoord): void {
     const deltaSeconds = deltaTime / 1000;
 
+    // Update squadron system
+    const enemyMap = new Map<string, Enemy>();
+    for (const [id, controller] of this.controllers) {
+      enemyMap.set(id, controller.enemy);
+    }
+    this.squadronSystem.update(deltaTime, enemyMap);
+
     for (const [enemyId, controller] of this.controllers) {
-      // Update cooldowns
+      // Update cooldowns (apply difficulty multiplier)
       if (controller.attackCooldown > 0) {
-        controller.attackCooldown -= deltaSeconds;
+        controller.attackCooldown -= deltaSeconds * this.difficultyMultipliers.attackRate;
       }
+
+      // Check squadron objective if in squadron
+      this.applySquadronObjective(controller);
 
       // Update behavior based on state
       this.updateBehavior(controller, playerPosition, playerSector, deltaSeconds);
@@ -314,6 +391,40 @@ export class AISystem {
   }
 
   /**
+   * Apply squadron objective to individual controller
+   */
+  private applySquadronObjective(controller: AIController): void {
+    const squadron = this.squadronSystem.getSquadronForEnemy(controller.enemy.id);
+    if (!squadron) return;
+
+    controller.squadronId = squadron.id;
+
+    // Apply squadron objective to individual behavior
+    switch (squadron.objective) {
+      case SquadronObjective.ATTACK_STARBASE:
+        if (controller.state !== AIBehaviorState.ATTACK_STARBASE &&
+            controller.state !== AIBehaviorState.MOVE_TO_STARBASE) {
+          controller.state = AIBehaviorState.MOVE_TO_STARBASE;
+          controller.targetSector = squadron.targetSector;
+        }
+        break;
+
+      case SquadronObjective.ATTACK_PLAYER:
+        if (controller.state !== AIBehaviorState.CHASE_PLAYER &&
+            controller.state !== AIBehaviorState.ATTACK_PLAYER) {
+          controller.state = AIBehaviorState.CHASE_PLAYER;
+        }
+        break;
+
+      case SquadronObjective.PATROL_ROUTE:
+        if (controller.state === AIBehaviorState.IDLE) {
+          controller.state = AIBehaviorState.PATROL;
+        }
+        break;
+    }
+  }
+
+  /**
    * Apply movement to enemy based on target position
    */
   private applyMovement(controller: AIController, deltaSeconds: number): void {
@@ -323,7 +434,10 @@ export class AISystem {
     }
 
     const direction = this.calculateDirection(controller.enemy.position, controller.targetPosition);
-    const speed = this.getSpeed(controller.enemy.type);
+    const baseSpeed = this.getSpeed(controller.enemy.type);
+    
+    // Apply difficulty speed multiplier
+    const speed = baseSpeed * this.difficultyMultipliers.speed;
 
     controller.enemy.velocity = {
       x: direction.x * speed,
@@ -488,9 +602,134 @@ export class AISystem {
   }
 
   /**
+   * Form squadrons from registered enemies
+   * Groups enemies by type and proximity
+   */
+  formSquadrons(): void {
+    const unassignedEnemies: Enemy[] = [];
+
+    // Find unassigned enemies
+    for (const controller of this.controllers.values()) {
+      if (!controller.squadronId) {
+        unassignedEnemies.push(controller.enemy);
+      }
+    }
+
+    if (unassignedEnemies.length < 2) {
+      return; // Need at least 2 for a squadron
+    }
+
+    // Group enemies by type and proximity
+    const fighterGroups = this.groupByProximity(
+      unassignedEnemies.filter(e => e.type === EnemyType.FIGHTER),
+      50 // metrons proximity
+    );
+    const cruiserGroups = this.groupByProximity(
+      unassignedEnemies.filter(e => e.type === EnemyType.CRUISER),
+      50
+    );
+    const basestarGroups = this.groupByProximity(
+      unassignedEnemies.filter(e => e.type === EnemyType.BASESTAR),
+      50
+    );
+
+    // Create squadrons
+    for (const group of fighterGroups) {
+      if (group.length >= 2) {
+        const squadron = this.squadronSystem.createSquadron(
+          group,
+          'V_FORMATION' as any,
+          'ATTACK_PLAYER' as any
+        );
+        if (squadron) {
+          this.assignSquadron(squadron.memberIds, squadron.id);
+        }
+      }
+    }
+
+    for (const group of cruiserGroups) {
+      if (group.length >= 2) {
+        const squadron = this.squadronSystem.createSquadron(
+          group,
+          'LINE_ABREAST' as any,
+          'PATROL_ROUTE' as any
+        );
+        if (squadron) {
+          this.assignSquadron(squadron.memberIds, squadron.id);
+        }
+      }
+    }
+
+    for (const group of basestarGroups) {
+      if (group.length >= 2) {
+        const squadron = this.squadronSystem.createSquadron(
+          group,
+          'CLUSTER' as any,
+          'ATTACK_STARBASE' as any
+        );
+        if (squadron) {
+          this.assignSquadron(squadron.memberIds, squadron.id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Group enemies by proximity
+   */
+  private groupByProximity(enemies: Enemy[], maxDistance: number): Enemy[][] {
+    const groups: Enemy[][] = [];
+    const assigned = new Set<string>();
+
+    for (const enemy of enemies) {
+      if (assigned.has(enemy.id)) continue;
+
+      const group: Enemy[] = [enemy];
+      assigned.add(enemy.id);
+
+      // Find nearby enemies
+      for (const other of enemies) {
+        if (assigned.has(other.id)) continue;
+
+        const distance = this.calculateDistance(enemy.position, other.position);
+        if (distance <= maxDistance) {
+          group.push(other);
+          assigned.add(other.id);
+        }
+      }
+
+      if (group.length > 1) {
+        groups.push(group);
+      }
+    }
+
+    return groups;
+  }
+
+  /**
+   * Assign squadron ID to controllers
+   */
+  private assignSquadron(memberIds: string[], squadronId: string): void {
+    for (const memberId of memberIds) {
+      const controller = this.controllers.get(memberId);
+      if (controller) {
+        controller.squadronId = squadronId;
+      }
+    }
+  }
+
+  /**
+   * Get squadron system
+   */
+  getSquadronSystem(): SquadronSystem {
+    return this.squadronSystem;
+  }
+
+  /**
    * Clear all AI controllers
    */
   clear(): void {
     this.controllers.clear();
+    this.squadronSystem.clear();
   }
 }
