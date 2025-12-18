@@ -260,6 +260,35 @@ All modernizations are optional and do not alter core gameplay.
 
 ---
 
+## Development Setup
+
+### Requirements
+- Unity 2022.3 LTS or newer
+- Visual Studio 2022 or JetBrains Rider
+- Git
+
+### Getting Started
+1. Clone this repository
+2. Open Unity Hub
+3. Click "Add" and select the repository folder
+4. Open the project in Unity
+5. Load the Bootstrap scene from `Assets/Scenes/Bootstrap.unity`
+6. Press Play to verify setup
+
+### Project Structure
+- `Assets/Scenes/` - Unity scenes
+- `Assets/Scripts/` - C# scripts organized by feature
+- `Assets/Prefabs/` - Reusable game objects
+- `Assets/ScriptableObjects/` - Data assets
+- See PHASE1_UNITY_SETUP_GUIDE.md for complete structure
+
+### Running the Game
+1. Open Bootstrap.unity scene
+2. Press Play in Unity Editor
+3. Current status: Phase 1 - Core setup complete
+
+---
+
 ## 📖 Additional Resources
 
 ### Original Game Resources

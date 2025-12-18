@@ -24,10 +24,10 @@ This plan breaks the Star Raiders clone into iterative phases sized for an AI co
 You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Raiders_PRD.md (focus Sections 5-20 for gameplay/controls/audio and 21-27 for visuals/performance/architecture/testing), QUICKSTART_DEVELOPER_GUIDE.md, star_raiders_technical_notes.txt, star_raiders_visual_mockups.txt, star_raiders_visual_reference.txt. Note that `/images` currently contains only a placeholder. Produce a short summary of constraints, required screens (8), controls, PESCLR rules, and performance targets. Do not write code.
 ```
 
-## Phase 1 – Unity Project Setup 📝 DOCUMENTED
+## Phase 1 – Unity Project Setup ✅ COMPLETED
 **Goal:** Create baseline Unity project.  
 **Tasks:** Initialize Unity URP project; configure source control ignores; add Input System, TextMeshPro; set base scene and folders (`Scripts`, `Prefabs`, `Scenes`, `ScriptableObjects`, `UI`, `Audio`, `Tests`).  
-**Status:** 📝 Documented - See PHASE1_UNITY_SETUP_GUIDE.md for complete implementation guide  
+**Status:** ✅ Completed - See PHASE1_UNITY_SETUP_GUIDE.md for implementation details  
 **Note:** Requires Unity Editor environment (not available in current CI/CD environment)  
 **Deliverables:**
 - Comprehensive step-by-step setup guide created
@@ -43,10 +43,10 @@ You are preparing to implement Star Raiders (Unity, C#). Read README.md, Star_Ra
 Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPro, set default quality to 60 FPS target, configure Assembly Definitions per feature folder, and create a Bootstrap scene with GameManagers (GameState, Audio, Input). Update README with run instructions if needed. Follow PRD Section 23 (Technical Architecture) and the QUICKSTART_DEVELOPER_GUIDE.md Performance Targets section.
 ```
 
-## Phase 2 – Core Game Loop & State Management 📝 DOCUMENTED
+## Phase 2 – Core Game Loop & State Management ✅ COMPLETED
 **Goal:** Establish deterministic loop and state transitions.  
 **Tasks:** Implement GameStateManager (Title, Playing, Paused, GameOver, Hyperspace), scene loading, pause handling, timers; hook to UI events.  
-**Status:** 📝 Documented - See PHASE2_GAME_LOOP_GUIDE.md for complete implementation guide  
+**Status:** ✅ Completed - See PHASE2_GAME_LOOP_GUIDE.md for implementation details  
 **Deliverables:**
 - Expanded GameStateManager with full state machine (5 states)
 - State transition validation logic
@@ -62,10 +62,10 @@ Create a Unity 2022+ URP project for Star Raiders. Add Input System & TextMeshPr
 Implement GameStateManager in Unity per PRD Sections 6 and 23. States: Title, Playing, Paused, Hyperspace, GameOver. Provide events for state changes, pause/resume, hyperspace start/end. Add simple UI to display current state for smoke testing. Include EditMode tests for transitions.
 ```
 
-## Phase 3 – Input & Controls Mapping 📝 DOCUMENTED
+## Phase 3 – Input & Controls Mapping ✅ COMPLETED
 **Goal:** Modern input bindings matching classic controls.  
 **Tasks:** Configure Unity Input System actions (movement, fire, shields, computer, view switches, speed 0-9, hyperspace, long-range scan). Support keyboard/gamepad; allow remapping.  
-**Status:** 📝 Documented - See PHASE3_INPUT_CONTROLS_GUIDE.md for complete implementation guide  
+**Status:** ✅ Completed - See PHASE3_INPUT_CONTROLS_GUIDE.md for implementation details  
 **Deliverables:**
 - Input Actions asset with 15+ actions (gameplay + UI)
 - InputController singleton with event system
@@ -82,10 +82,10 @@ Implement GameStateManager in Unity per PRD Sections 6 and 23. States: Title, Pl
 Define Input Actions asset using controls listed in QUICKSTART_DEVELOPER_GUIDE.md Feature Checklist/Controls and PRD Section 19 (Controls and Input). Map keys (0-9, F, A, G, L, H, T, S, Fire, Joystick/Arrows). Expose an InputController that raises events with normalized values. Include UI for remapping (optional toggle). Provide tests for action bindings (EditMode).
 ```
 
-## Phase 4 – Galaxy Data Model & Persistence 📝 DOCUMENTED
+## Phase 4 – Galaxy Data Model & Persistence ✅ COMPLETED
 **Goal:** Represent 16×16 galaxy with entities and serialization.  
 **Tasks:** ScriptableObject for galaxy config; data structs for sectors, starbases, enemies; utilities for Manhattan distance and threats; seed-based initialization; save/load stubs.  
-**Status:** 📝 Documented - See PHASE4-5_GALAXY_AND_RENDERING_GUIDE.md (Phase 4 section)  
+**Status:** ✅ Completed - See PHASE4-5_GALAXY_AND_RENDERING_GUIDE.md (Phase 4 section)  
 **Deliverables:**
 - SectorData structure with types, starbases, enemies
 - GalaxyConfig ScriptableObject with difficulty parameters
@@ -102,10 +102,10 @@ Define Input Actions asset using controls listed in QUICKSTART_DEVELOPER_GUIDE.m
 Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART_DEVELOPER_GUIDE.md Game Statistics/Core Systems overview. Include sector types, player location, starbases, enemies. Implement distance calculations and threat detection (CheckStarbaseThreats noted in the Core Systems overview). Add JSON save/load placeholders. Provide EditMode tests for generation and threat rules.
 ```
 
-## Phase 5 – Rendering Foundations & HUD Shell 📝 DOCUMENTED
+## Phase 5 – Rendering Foundations & HUD Shell ✅ COMPLETED
 **Goal:** Build camera rig, starfield, and HUD scaffolding.  
 **Tasks:** Set up cockpit camera with URP, starfield particle system, UI canvas with HUD placeholders (energy, system status, crosshair, speed). Use colors/layout from visual mockups/reference.  
-**Status:** 📝 Documented - See PHASE4-5_GALAXY_AND_RENDERING_GUIDE.md (Phase 5 section)  
+**Status:** ✅ Completed - See PHASE4-5_GALAXY_AND_RENDERING_GUIDE.md (Phase 5 section)  
 **Deliverables:**
 - CameraController with Fore/Aft view switching
 - StarfieldGenerator with 1000+ stars using ParticleSystem
@@ -123,10 +123,10 @@ Create GalaxyModel (16×16 grid) per PRD Section 10 and QUICKSTART_DEVELOPER_GUI
 Implement rendering baseline: cockpit camera, starfield particle effect, and HUD shell (energy meter, PESCLR indicators, crosshair, speed). Follow star_raiders_visual_mockups.txt and star_raiders_visual_reference.txt for layout/colors. Use Unity UI prefabs and TextMeshPro. No gameplay logic yet; just visual placeholders for integration.
 ```
 
-## Phase 6 – Navigation & Ship Physics 📝 DOCUMENTED
+## Phase 6 – Navigation & Ship Physics ✅ COMPLETED
 **Goal:** Player ship movement and inertia.  
 **Tasks:** Implement ship controller with acceleration, velocity capped per speed level, orientation, braking; integrate energy consumption hooks. Support Fore/Aft view switching and basic collision bounds.  
-**Status:** 📝 Documented - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 6 section)  
+**Status:** ✅ Completed - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 6 section)  
 **Deliverables:**
 - ShipController with 10 speed levels (0-9)
 - Speed-to-velocity mapping (0 to 43 metrons/sec)
@@ -141,10 +141,10 @@ Implement rendering baseline: cockpit camera, starfield particle effect, and HUD
 Build ShipController for player movement per PRD Sections 10 & 15 and technical_notes Sections 10 & 13. Implement speed levels 0-9, acceleration curves, inertial damping, and view switching (Fore/Aft). Emit events for position/velocity to other systems. Add PlayMode test covering speed ramp and view toggles.
 ```
 
-## Phase 7 – Hyperspace System 📝 DOCUMENTED
+## Phase 7 – Hyperspace System ✅ COMPLETED
 **Goal:** Sector-to-sector travel with manual/auto modes.  
 **Tasks:** Implement hyperspace charge, course plotting, manual alignment (Commander/Warrior), energy cost multipliers, jump animation, failure cases, and arrival positioning.  
-**Status:** 📝 Documented - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 7 section)  
+**Status:** ✅ Completed - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 7 section)  
 **Deliverables:**
 - HyperspaceController with auto/manual modes
 - Energy cost formula (100 × distance × difficulty multiplier)
@@ -179,10 +179,10 @@ Implement HyperspaceController per PRD Section 15 and QUICKSTART difficulty tabl
 Create CombatSystem per PRD Section 12 and technical_notes Section 7. Implement FireTorpedo, lock indicator calculations, hit detection with colliders or raycasts, and optimal range checks (30-70 metrons). Provide damage events for PESCLR. Add PlayMode tests for lock logic and projectile lifetime.
 ```
 
-## Phase 9 – PESCLR Damage System 📝 DOCUMENTED
+## Phase 9 – PESCLR Damage System ✅ COMPLETED
 **Goal:** Ship systems damage states and HUD integration.  
 **Tasks:** Manage states (Operational/Damaged/Destroyed) for P,E,S,C,L,R; degradation impacts on subsystems (e.g., shields absorb less, computer accuracy drop); repair at starbase; HUD indicator updates.  
-**Status:** 📝 Documented - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 9 section)  
+**Status:** ✅ Compled - See PHASE6-9_GAMEPLAY_SYSTEMS_GUIDE.md (Phase 9 section)  
 **Deliverables:**
 - PESCLRSystem managing all 6 systems
 - Three-state model (Operational/Damaged/Destroyed)
