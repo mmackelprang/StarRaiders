@@ -248,6 +248,28 @@ export class VectorRenderer {
   }
 
   /**
+   * Project a 3D position to screen coordinates
+   * Returns null if position is off screen or behind camera
+   */
+  projectToScreen(position: Vector3D): { x: number; y: number } | null {
+    const screenWidth = this.scene.scale.width;
+    const screenHeight = this.scene.scale.height;
+    
+    const projected = Math3D.project3DTo2D(
+      position,
+      this.camera,
+      screenWidth,
+      screenHeight
+    );
+    
+    if (projected === null) {
+      return null;
+    }
+    
+    return { x: projected.x, y: projected.y };
+  }
+
+  /**
    * Destroy the renderer
    */
   destroy(): void {

@@ -38,3 +38,20 @@ export enum EnemyType {
   CRUISER = 'CRUISER',
   BASESTAR = 'BASESTAR'
 }
+
+// Combat
+export const TORPEDO_SPEED = 50; // metrons/second
+export const TORPEDO_RANGE = 100; // metrons
+export const TORPEDO_ENERGY_COST = 5; // energy per shot
+export const TORPEDO_COOLDOWN = 0.25; // seconds between shots
+
+// Lock thresholds
+export const H_LOCK_THRESHOLD = 5; // metrons
+export const V_LOCK_THRESHOLD = 5; // metrons
+export const RANGE_OPTIMAL_MIN = 30; // metrons
+export const RANGE_OPTIMAL_MAX = 70; // metrons
+
+// Enemy health
+export const FIGHTER_HEALTH = 1;
+export const CRUISER_HEALTH = 2;
+export const BASESTAR_HEALTH = 3;
