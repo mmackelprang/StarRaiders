@@ -20,6 +20,7 @@ export enum InputAction {
   TOGGLE_COMPUTER = 'TOGGLE_COMPUTER',
   TOGGLE_SHIELDS = 'TOGGLE_SHIELDS',
   FIRE_TORPEDO = 'FIRE_TORPEDO',
+  DOCK = 'DOCK',
   PAUSE = 'PAUSE',
   NAV_UP = 'NAV_UP',
   NAV_DOWN = 'NAV_DOWN',
@@ -80,6 +81,7 @@ export class InputManager {
 
     // Combat
     this.keyBindings.set(Phaser.Input.Keyboard.KeyCodes.SPACE, InputAction.FIRE_TORPEDO);
+    this.keyBindings.set(Phaser.Input.Keyboard.KeyCodes.D, InputAction.DOCK);
 
     // Menu
     this.keyBindings.set(Phaser.Input.Keyboard.KeyCodes.ESC, InputAction.PAUSE);

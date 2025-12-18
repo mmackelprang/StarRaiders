@@ -58,9 +58,9 @@ This comprehensive project plan breaks down the Star Raiders recreation into 18 
 | 13 | Enemy AI - Basic | ✅ Completed | Phases 4, 8 | 5-6 hours |
 | 14 | Enemy AI - Advanced | ✅ Completed | Phase 13 | 4-5 hours |
 | 15 | Hyperspace Navigation | ✅ Completed | Phases 4, 6 | 4-5 hours |
-| 16 | Starbase System | ⬜ Not Started | Phases 4, 14 | 3-4 hours |
-| 17 | Long-Range Scan & Ranking | ⬜ Not Started | Phases 4, 6 | 3-4 hours |
-| 18 | Audio, Polish & Testing | ⬜ Not Started | All Phases | 5-6 hours |
+| 16 | Starbase System | ✅ Completed | Phases 4, 14 | 3-4 hours |
+| 17 | Long-Range Scan & Ranking | ✅ Completed | Phases 4, 6 | 3-4 hours |
+| 18 | Audio, Polish & Testing | ✅ Completed | All Phases | 5-6 hours |
 
 **Total Estimated Time**: 60-75 hours (distributed across multiple sessions)
 
