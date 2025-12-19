@@ -9,6 +9,7 @@ import { GalacticChartScene } from '@scenes/GalacticChart';
 import { VectorRenderTestScene } from '@scenes/VectorRenderTest';
 import { CombatViewScene } from '@scenes/CombatView';
 import { LongRangeScanScene } from '@scenes/LongRangeScan';
+import { HyperspaceScene } from '@scenes/Hyperspace';
 
 export const GameConfig: Phaser.Types.Core.GameConfig = {
   type: Phaser.AUTO,
@@ -38,6 +39,7 @@ export const GameConfig: Phaser.Types.Core.GameConfig = {
     GalacticChartScene,
     CombatViewScene,
     LongRangeScanScene,
+    HyperspaceScene,
     StarfieldTestScene,
     GalacticChartTestScene,
     VectorRenderTestScene

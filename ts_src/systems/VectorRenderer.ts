@@ -142,65 +142,140 @@ export class VectorRenderer {
   }
 
   /**
-   * Draw a fighter ship (simple triangle)
+   * Draw a fighter ship in a TIE-style silhouette
+   * Central pod with vertical wings on left and right
    */
   private drawFighter(x: number, y: number, size: number): void {
-    this.graphics.beginPath();
-    this.graphics.moveTo(x, y - size / 2); // Top
-    this.graphics.lineTo(x - size / 3, y + size / 2); // Bottom left
-    this.graphics.lineTo(x + size / 3, y + size / 2); // Bottom right
-    this.graphics.closePath();
-    this.graphics.fillPath();
+    const podWidth = size * 0.3;
+    const podHeight = size * 0.6;
+    const wingWidth = size * 0.35;
+    const wingHeight = size * 0.9;
+    const strutWidth = size * 0.08;
+ 
+    // Left wing
+    this.graphics.fillRect(
+      x - podWidth / 2 - wingWidth,
+      y - wingHeight / 2,
+      wingWidth,
+      wingHeight,
+    );
+ 
+    // Right wing
+    this.graphics.fillRect(
+      x + podWidth / 2,
+      y - wingHeight / 2,
+      wingWidth,
+      wingHeight,
+    );
+ 
+    // Central pod
+    this.graphics.fillRect(
+      x - podWidth / 2,
+      y - podHeight / 2,
+      podWidth,
+      podHeight,
+    );
+ 
+    // Upper strut
+    this.graphics.fillRect(
+      x - strutWidth / 2,
+      y - wingHeight / 2,
+      strutWidth,
+      (wingHeight - podHeight) / 2,
+    );
+ 
+    // Lower strut
+    this.graphics.fillRect(
+      x - strutWidth / 2,
+      y + podHeight / 2,
+      strutWidth,
+      (wingHeight - podHeight) / 2,
+    );
   }
-
+ 
   /**
-   * Draw a cruiser (larger triangle with wings)
+   * Draw a cruiser in a bird-of-prey style silhouette
+   * Swept wings with a central forward "beak"
    */
   private drawCruiser(x: number, y: number, size: number): void {
+    const half = size / 2;
+    const wingSpan = size * 1.2;
+    const wingSweep = size * 0.4;
+ 
     this.graphics.beginPath();
-    this.graphics.moveTo(x, y - size / 2); // Top point
-    this.graphics.lineTo(x - size / 2, y); // Left wing
-    this.graphics.lineTo(x - size / 4, y + size / 2); // Bottom left
-    this.graphics.lineTo(x + size / 4, y + size / 2); // Bottom right
-    this.graphics.lineTo(x + size / 2, y); // Right wing
+ 
+    // Nose / beak
+    this.graphics.moveTo(x, y - half);
+ 
+    // Left forward wing tip
+    this.graphics.lineTo(x - wingSpan / 2, y - wingSweep / 2);
+ 
+    // Left rear wing
+    this.graphics.lineTo(x - wingSpan * 0.6, y + half);
+ 
+    // Tail / engine section
+    this.graphics.lineTo(x, y + half * 0.6);
+ 
+    // Right rear wing
+    this.graphics.lineTo(x + wingSpan * 0.6, y + half);
+ 
+    // Right forward wing tip
+    this.graphics.lineTo(x + wingSpan / 2, y - wingSweep / 2);
+ 
     this.graphics.closePath();
     this.graphics.fillPath();
   }
-
+ 
   /**
-   * Draw a basestar (large X shape)
+   * Draw a basestar as a thick saucer shape
    */
   private drawBasestar(x: number, y: number, size: number): void {
-    const halfSize = size / 2;
-    const quarterSize = size / 4;
-
-    // Draw center square
-    this.graphics.fillRect(x - quarterSize / 2, y - quarterSize / 2, quarterSize, quarterSize);
-
-    // Draw four arms
-    // Top
-    this.graphics.fillTriangle(
-      x, y - halfSize,
-      x - quarterSize / 2, y - quarterSize / 2,
-      x + quarterSize / 2, y - quarterSize / 2
+    const radius = size / 2;
+    const domeRadius = size * 0.25;
+    const notchWidth = size * 0.2;
+    const notchHeight = size * 0.08;
+ 
+    // Main saucer body (flattened disc)
+    this.graphics.fillEllipse(x, y, size, size * 0.6);
+ 
+    // Central dome
+    this.graphics.fillEllipse(
+      x,
+      y - radius * 0.1,
+      domeRadius * 2,
+      domeRadius,
     );
-    // Bottom
-    this.graphics.fillTriangle(
-      x, y + halfSize,
-      x - quarterSize / 2, y + quarterSize / 2,
-      x + quarterSize / 2, y + quarterSize / 2
+ 
+    // Front notch
+    this.graphics.fillRect(
+      x - notchWidth / 2,
+      y - radius * 0.6 - notchHeight / 2,
+      notchWidth,
+      notchHeight,
     );
-    // Left
-    this.graphics.fillTriangle(
-      x - halfSize, y,
-      x - quarterSize / 2, y - quarterSize / 2,
-      x - quarterSize / 2, y + quarterSize / 2
+ 
+    // Rear notch
+    this.graphics.fillRect(
+      x - notchWidth / 2,
+      y + radius * 0.6 - notchHeight / 2,
+      notchWidth,
+      notchHeight,
     );
-    // Right
-    this.graphics.fillTriangle(
-      x + halfSize, y,
-      x + quarterSize / 2, y - quarterSize / 2,
-      x + quarterSize / 2, y + quarterSize / 2
+ 
+    // Left notch
+    this.graphics.fillRect(
+      x - size / 2 - notchHeight / 2,
+      y - notchWidth / 2,
+      notchHeight,
+      notchWidth,
+    );
+ 
+    // Right notch
+    this.graphics.fillRect(
+      x + size / 2 - notchHeight / 2,
+      y - notchWidth / 2,
+      notchHeight,
+      notchWidth,
     );
   }
 

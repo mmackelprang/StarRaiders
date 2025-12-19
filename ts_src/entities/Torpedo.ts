@@ -1,16 +1,23 @@
 import Phaser from 'phaser';
 import { Vector3D } from '@utils/Types';
-
+ 
 export enum TorpedoDirection {
   FORE = 'FORE',
   AFT = 'AFT',
 }
 
+// Which launcher the phasor/torpedo is emitted from
+export enum TorpedoEmitterSide {
+  LEFT = 'LEFT',
+  RIGHT = 'RIGHT',
+}
+ 
 export class Torpedo {
   public id: string;
   public position: Vector3D;
   public velocity: Vector3D;
   public direction: TorpedoDirection;
+  public emitterSide: TorpedoEmitterSide;
   public active: boolean = true;
   public distanceTraveled: number = 0;
   public readonly maxRange: number = 100; // metrons
@@ -24,11 +31,20 @@ export class Torpedo {
   constructor(
     id: string,
     startPosition: Vector3D,
-    direction: TorpedoDirection
+    direction: TorpedoDirection,
+    emitterSide: TorpedoEmitterSide,
   ) {
     this.id = id;
-    this.position = { ...startPosition };
     this.direction = direction;
+    this.emitterSide = emitterSide;
+
+    // Offset starting position to come from left/right emitter
+    const lateralOffset = emitterSide === TorpedoEmitterSide.LEFT ? -5 : 5; // metrons
+    this.position = {
+      x: startPosition.x + lateralOffset,
+      y: startPosition.y,
+      z: startPosition.z,
+    };
     
     // Set velocity based on direction
     const directionMultiplier = direction === TorpedoDirection.FORE ? 1 : -1;

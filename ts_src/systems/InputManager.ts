@@ -35,6 +35,7 @@ export class InputManager {
   private keyBindings: Map<number, InputAction>;
   private gamepad: Phaser.Input.Gamepad.Gamepad | null = null;
   private cursors: Phaser.Types.Input.Keyboard.CursorKeys | null = null;
+  private keydownHandler: ((event: KeyboardEvent) => void) | null = null;
 
   private constructor() {
     this.eventEmitter = new Phaser.Events.EventEmitter();
@@ -50,9 +51,32 @@ export class InputManager {
   }
 
   initialize(scene: Phaser.Scene): void {
+    // Clean up previous scene's keyboard listeners first
+    this.cleanup();
+    
     this.scene = scene;
+    
+    // DIAGNOSTIC: Log listener count before setup
+    console.log(`[InputManager] Initializing for scene: ${scene.scene.key}`);
+    console.log(`[InputManager] EventEmitter listener count BEFORE setup:`, this.eventEmitter.listenerCount('action'));
+    
     this.setupKeyboardListeners();
     this.setupGamepadListeners();
+    
+    // DIAGNOSTIC: Log listener count after setup
+    console.log(`[InputManager] EventEmitter listener count AFTER setup:`, this.eventEmitter.listenerCount('action'));
+  }
+  
+  /**
+   * Clean up keyboard listeners from previous scene
+   */
+  cleanup(): void {
+    if (this.scene && this.scene.input.keyboard && this.keydownHandler) {
+      console.log('[InputManager] Cleaning up keyboard listener from previous scene');
+      this.scene.input.keyboard.off('keydown', this.keydownHandler);
+      this.keydownHandler = null;
+    }
+    this.cursors = null;
   }
 
   private setupDefaultKeyBindings(): void {
@@ -96,19 +120,29 @@ export class InputManager {
   private setupKeyboardListeners(): void {
     if (!this.scene || !this.scene.input.keyboard) return;
 
+    // DIAGNOSTIC: Log keyboard listener count before cleanup
+    const keyboardListenerCount = this.scene.input.keyboard.listenerCount('keydown');
+    console.log(`[InputManager] Keyboard 'keydown' listeners BEFORE cleanup: ${keyboardListenerCount}`);
+
     // Remove any existing listeners from previous scene
     this.scene.input.keyboard.removeAllListeners('keydown');
 
     // Set up cursor keys
     this.cursors = this.scene.input.keyboard.createCursorKeys();
 
-    // Listen to all key down events
-    this.scene.input.keyboard.on('keydown', (event: KeyboardEvent) => {
+    // Create and store the keydown handler so we can remove it later
+    this.keydownHandler = (event: KeyboardEvent) => {
       const action = this.keyBindings.get(event.keyCode);
       if (action) {
         this.handleAction(action);
       }
-    });
+    };
+
+    // Listen to all key down events
+    this.scene.input.keyboard.on('keydown', this.keydownHandler);
+    
+    // DIAGNOSTIC: Log keyboard listener count after setup
+    console.log(`[InputManager] Keyboard 'keydown' listeners AFTER setup: ${this.scene.input.keyboard.listenerCount('keydown')}`);
   }
 
   private setupGamepadListeners(): void {
@@ -185,10 +219,42 @@ export class InputManager {
 
   on(event: string | InputAction, callback: Function, context?: any): void {
     this.eventEmitter.on(event, callback, context);
+    
+    // DIAGNOSTIC: Log total listener count
+    const totalListeners = this.eventEmitter.eventNames().reduce((sum, name) => {
+      return sum + this.eventEmitter.listenerCount(name as string);
+    }, 0);
+    console.log(`[InputManager] Total EventEmitter listeners after 'on': ${totalListeners}`);
   }
 
   off(event: string | InputAction, callback?: Function, context?: any): void {
     this.eventEmitter.off(event, callback, context);
+    
+    // DIAGNOSTIC: Log total listener count
+    const totalListeners = this.eventEmitter.eventNames().reduce((sum, name) => {
+      return sum + this.eventEmitter.listenerCount(name as string);
+    }, 0);
+    console.log(`[InputManager] Total EventEmitter listeners after 'off': ${totalListeners}`);
+  }
+  
+  /**
+   * Remove all listeners for a specific event
+   * Use this in scene shutdown to prevent memory leaks
+   */
+  removeAllListeners(event?: string | InputAction): void {
+    if (event) {
+      this.eventEmitter.removeAllListeners(event as string);
+      console.log(`[InputManager] Removed all listeners for event: ${event}`);
+    } else {
+      this.eventEmitter.removeAllListeners();
+      console.log('[InputManager] Removed ALL listeners from EventEmitter');
+    }
+    
+    // DIAGNOSTIC: Log total listener count
+    const totalListeners = this.eventEmitter.eventNames().reduce((sum, name) => {
+      return sum + this.eventEmitter.listenerCount(name as string);
+    }, 0);
+    console.log(`[InputManager] Total EventEmitter listeners after removeAllListeners: ${totalListeners}`);
   }
 
   // For optional key rebinding feature

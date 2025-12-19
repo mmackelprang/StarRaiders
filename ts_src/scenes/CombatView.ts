@@ -5,6 +5,8 @@ import { CombatSystem } from '@systems/CombatSystem';
 import { ExplosionManager } from '@systems/ExplosionManager';
 import { StarbaseSystem } from '@systems/StarbaseSystem';
 import { GalaxyManager } from '@systems/GalaxyManager';
+import { EnergySystem } from '@systems/EnergySystem';
+import { PESCLRSystem } from '@systems/PESCLRSystem';
 import { Enemy } from '@entities/Enemy';
 import { Torpedo, TorpedoDirection } from '@entities/Torpedo';
 import { GameStateManager, GameStateType } from '@systems/GameStateManager';
@@ -26,9 +28,19 @@ export class CombatViewScene extends Phaser.Scene {
   private inputManager!: InputManager;
   private starbaseSystem!: StarbaseSystem;
   private galaxyManager!: GalaxyManager;
+  private energySystem!: EnergySystem;
+  private pesclrSystem!: PESCLRSystem;
 
   private enemies: Enemy[] = [];
   private viewDirection: ViewDirection = ViewDirection.FORE;
+
+  // Starfield rotation velocity (for arrow key navigation)
+  private rotationVelocity = { x: 0, y: 0 };
+  private readonly ROTATION_SPEED = 30; // pixels per second when rotating
+  private readonly ROTATION_DAMPING = 0.92; // smooth deceleration
+  private readonly IDLE_DRIFT_SPEED = 5; // subtle constant movement
+  private readonly IDLE_DRIFT_FREQ_X = 0.0003; // horizontal drift frequency
+  private readonly IDLE_DRIFT_FREQ_Y = 0.0005; // vertical drift frequency
 
   // HUD elements
   private hudText!: Phaser.GameObjects.Text;
@@ -67,6 +79,12 @@ export class CombatViewScene extends Phaser.Scene {
   init(data: { direction?: ViewDirection }): void {
     this.viewDirection = data.direction || ViewDirection.FORE;
     Debug.log(`CombatView: Initializing ${this.viewDirection} view`);
+    
+    // IMPORTANT: Clean up listeners from previous instance if this is a restart
+    // scene.restart() doesn't call shutdown(), so we must clean up here
+    const inputManager = InputManager.getInstance();
+    inputManager.removeAllListeners();
+    console.log('[CombatView] init() - cleaned up listeners from previous instance');
   }
 
   create(): void {
@@ -78,6 +96,10 @@ export class CombatViewScene extends Phaser.Scene {
 
     // Set state
     this.gameStateManager.setState(GameStateType.PLAYING);
+
+    // Initialize energy and PESCLR systems
+    this.pesclrSystem = new PESCLRSystem();
+    this.energySystem = new EnergySystem(this.pesclrSystem);
 
     // Create rendering systems
     this.vectorRenderer = new VectorRenderer(this);
@@ -94,8 +116,8 @@ export class CombatViewScene extends Phaser.Scene {
     this.createTrackingComputerHUD();
     this.createShieldEffect();
 
-    // Create test enemies for demonstration
-    this.createTestEnemies();
+    // Create enemies from current sector data
+    this.createEnemiesFromSector();
 
     // Set up input
     this.setupInput();
@@ -110,12 +132,16 @@ export class CombatViewScene extends Phaser.Scene {
     const energy = gameState.player.energy;
     const kills = gameState.player.kills;
     const tracking = this.viewDirection === ViewDirection.FORE ? 'F' : 'A';
-
-    const hudContent = `V: ${velocity.toString().padStart(2, '0')}    E: ${energy}    K: ${kills.toString().padStart(2, '0')}    T: ${tracking}`;
-
-    this.hudText = this.add.text(20, 20, hudContent, {
+ 
+    const hudContent =
+      ` V:${velocity.toString().padStart(2, '0')}` +
+      `  E:${Math.floor(energy).toString().padStart(4, '0')}` +
+      `  K:${kills.toString().padStart(2, '0')}` +
+      `  T:${tracking}`;
+ 
+    this.hudText = this.add.text(16, 16, hudContent, {
       fontSize: '20px',
-      color: '#FFFFFF',
+      color: '#00FF00',
       fontFamily: 'monospace',
     });
   }
@@ -253,20 +279,21 @@ export class CombatViewScene extends Phaser.Scene {
 
   private createStatusBar(): void {
     const gameState = this.gameStateManager.getGameState();
-    const shieldsStatus = gameState.player.shieldsActive ? 'ON' : 'OFF';
-    const computerStatus = gameState.player.computerActive ? 'ON' : 'OFF';
-    const shieldsColor = gameState.player.shieldsActive ? '#00FF00' : '#666666';
-    const computerColor = gameState.player.computerActive ? '#00FF00' : '#666666';
-
-    const statusContent = `[S] SHIELDS: ${shieldsStatus}   [T] COMPUTER: ${computerStatus}   [F] FORE  [A] AFT  [G] CHART`;
-
+    const shieldsStatus = gameState.player.shieldsActive ? 'ON ' : 'OFF';
+    const computerStatus = gameState.player.computerActive ? 'ON ' : 'OFF';
+ 
+    const statusContent =
+      ` [S] SHIELDS:${shieldsStatus}` +
+      `  [T] COMPUTER:${computerStatus}` +
+      `   [F] FORE  [A] AFT  [G] CHART`;
+ 
     this.statusBar = this.add.text(
       this.scale.width / 2,
-      this.scale.height - 30,
+      this.scale.height - 40,
       statusContent,
       {
         fontSize: '16px',
-        color: '#FFFFFF',
+        color: '#00FF00',
         fontFamily: 'monospace',
       }
     );
@@ -408,36 +435,59 @@ export class CombatViewScene extends Phaser.Scene {
     
     const systemKeys: (keyof typeof systems)[] = ['photon', 'engines', 'shields', 'computer', 'longRange', 'radio'];
     
-    // Update colors of existing text objects
+    // Update colors of existing text objects - check if they still exist first
     for (let i = 0; i < systemKeys.length; i++) {
-      const key = systemKeys[i];
-      const status = systems[key];
-      const color = pesclrSystem.getSystemColor(status);
-      this.pesclrTexts[i].setColor(color);
+      if (i < this.pesclrTexts.length && this.pesclrTexts[i] && this.pesclrTexts[i].active) {
+        const key = systemKeys[i];
+        const status = systems[key];
+        const color = pesclrSystem.getSystemColor(status);
+        this.pesclrTexts[i].setColor(color);
+      }
     }
   }
 
-  private createTestEnemies(): void {
-    // Create enemies based on view direction
-    if (this.viewDirection === ViewDirection.FORE) {
-      // Front enemies
-      this.enemies.push(
-        new Enemy('target-1', EnemyType.FIGHTER, { x: 0, y: 0, z: 50 }, 1)
+  private createEnemiesFromSector(): void {
+    // Get current sector from game state
+    const gameState = this.gameStateManager.getGameState();
+    const currentSector = gameState.player.sector;
+    
+    // Get sector data from galaxy manager
+    const sectorData = this.galaxyManager.getSector(currentSector);
+    
+    if (!sectorData || sectorData.enemies.length === 0) {
+      // No enemies in this sector
+      Debug.log('No enemies in current sector');
+      return;
+    }
+    
+    Debug.log(`Creating ${sectorData.enemies.length} enemies in sector (${currentSector.x}, ${currentSector.y})`);
+    
+    // Create Enemy entities from sector data
+    for (let i = 0; i < sectorData.enemies.length; i++) {
+      const enemyData = sectorData.enemies[i];
+      
+      // Generate 3D position for enemy in combat view
+      // Spread enemies out in 3D space based on their index
+      const angle = (i / sectorData.enemies.length) * Math.PI * 2;
+      const distance = 40 + (i * 15); // Vary distance
+      const spread = 20;
+      
+      const position = {
+        x: Math.cos(angle) * spread,
+        y: Math.sin(angle) * spread * 0.5, // Less vertical spread
+        z: this.viewDirection === ViewDirection.FORE ? distance : -distance,
+      };
+      
+      // Create enemy with data from galaxy
+      const enemy = new Enemy(
+        enemyData.id,
+        enemyData.type,
+        position,
+        enemyData.health
       );
-      this.enemies.push(
-        new Enemy('target-2', EnemyType.CRUISER, { x: -20, y: 5, z: 70 }, 2)
-      );
-      this.enemies.push(
-        new Enemy('target-3', EnemyType.BASESTAR, { x: 15, y: -8, z: 90 }, 3)
-      );
-    } else {
-      // Aft enemies
-      this.enemies.push(
-        new Enemy('pursuer-1', EnemyType.FIGHTER, { x: 0, y: 0, z: -40 }, 1)
-      );
-      this.enemies.push(
-        new Enemy('pursuer-2', EnemyType.CRUISER, { x: 10, y: -5, z: -60 }, 2)
-      );
+      
+      this.enemies.push(enemy);
+      Debug.log(`  - ${enemyData.type} at (${position.x.toFixed(1)}, ${position.y.toFixed(1)}, ${position.z.toFixed(1)})`);
     }
 
     // Set initial target range
@@ -447,6 +497,13 @@ export class CombatViewScene extends Phaser.Scene {
   }
 
   private setupInput(): void {
+    // Listen to navigation events (arrow keys)
+    this.inputManager.on('navigation', (navX: number, navY: number) => {
+      // Update rotation velocity based on arrow key input
+      this.rotationVelocity.x = navX * this.ROTATION_SPEED;
+      this.rotationVelocity.y = navY * this.ROTATION_SPEED;
+    });
+
     // Toggle shields
     this.inputManager.on(InputAction.TOGGLE_SHIELDS, () => {
       const gameState = this.gameStateManager.getGameState();
@@ -615,6 +672,41 @@ export class CombatViewScene extends Phaser.Scene {
     Debug.log(`Velocity set to: ${level} (${SPEED_TABLE[level]} metrons/sec)`);
   }
 
+  private updatePlayerPosition(deltaSeconds: number, gameState: any): void {
+    // Get current velocity in metrons/second
+    const forwardSpeed = SPEED_TABLE[gameState.player.velocity] || 0;
+    
+    // Convert rotation velocity (from arrow keys) to actual player movement
+    const moveSpeed = 10; // metrons/second for lateral movement
+    
+    // Update player position in 3D space
+    // Forward/backward movement (Z-axis)
+    if (this.viewDirection === ViewDirection.FORE) {
+      gameState.player.position.z += forwardSpeed * deltaSeconds;
+    } else {
+      gameState.player.position.z -= forwardSpeed * deltaSeconds;
+    }
+    
+    // Lateral movement from arrow keys (X and Y axes)
+    gameState.player.position.x += (this.rotationVelocity.x / this.ROTATION_SPEED) * moveSpeed * deltaSeconds;
+    gameState.player.position.y += (this.rotationVelocity.y / this.ROTATION_SPEED) * moveSpeed * deltaSeconds;
+    
+    // Update enemy positions relative to player movement
+    // This makes enemies appear to move closer/farther as player moves
+    for (const enemy of this.enemies) {
+      // Move enemies in opposite direction to simulate player movement
+      if (this.viewDirection === ViewDirection.FORE) {
+        enemy.position.z -= forwardSpeed * deltaSeconds;
+      } else {
+        enemy.position.z += forwardSpeed * deltaSeconds;
+      }
+      
+      // Lateral movement relative to player
+      enemy.position.x -= (this.rotationVelocity.x / this.ROTATION_SPEED) * moveSpeed * deltaSeconds;
+      enemy.position.y -= (this.rotationVelocity.y / this.ROTATION_SPEED) * moveSpeed * deltaSeconds;
+    }
+  }
+
   update(time: number, delta: number): void {
     const deltaSeconds = delta / 1000;
     const gameState = this.gameStateManager.getGameState();
@@ -622,12 +714,33 @@ export class CombatViewScene extends Phaser.Scene {
     // Update input manager
     this.inputManager.update();
 
+    // Update energy system for velocity-based energy consumption
+    this.energySystem.update(delta);
+
+    // Update player position based on velocity and navigation
+    this.updatePlayerPosition(deltaSeconds, gameState);
+
     // Update combat system (torpedoes and collisions)
     this.combatSystem.update(deltaSeconds, this.enemies);
 
-    // Update starfield based on velocity
-    const velocity = SPEED_TABLE[gameState.player.velocity] || 0;
-    this.starfieldManager.update(deltaSeconds, 0, velocity);
+    // Calculate starfield movement from multiple sources
+    // 1. Forward velocity from speed setting
+    const forwardVelocity = SPEED_TABLE[gameState.player.velocity] || 0;
+    
+    // 2. Apply rotation damping for smooth deceleration
+    this.rotationVelocity.x *= this.ROTATION_DAMPING;
+    this.rotationVelocity.y *= this.ROTATION_DAMPING;
+    
+    // 3. Add idle drift for visual interest (even at velocity 0)
+    const idleDriftX = Math.sin(time * this.IDLE_DRIFT_FREQ_X) * this.IDLE_DRIFT_SPEED;
+    const idleDriftY = Math.cos(time * this.IDLE_DRIFT_FREQ_Y) * this.IDLE_DRIFT_SPEED;
+    
+    // 4. Combine all velocity sources
+    const totalVelocityX = this.rotationVelocity.x + idleDriftX;
+    const totalVelocityY = forwardVelocity + this.rotationVelocity.y + idleDriftY;
+    
+    // Update starfield with combined velocity
+    this.starfieldManager.update(deltaSeconds, totalVelocityX, totalVelocityY);
 
     // Update camera rotation based on view direction
     if (this.viewDirection === ViewDirection.AFT) {
@@ -716,17 +829,23 @@ export class CombatViewScene extends Phaser.Scene {
         graphics.clear(); // Always clear before use
         this.torpedoGraphicsIndex++;
         
-        // Calculate torpedo endpoint (for trail effect)
-        const trailLength = torpedo.getVisualLength(Math.abs(torpedo.position.z));
-        const endX = screenPos.x - (torpedo.direction === TorpedoDirection.FORE ? trailLength : -trailLength);
+        // Compute shrinking radius based on distance traveled
+        const progress = Phaser.Math.Clamp(
+          torpedo.distanceTraveled / torpedo.maxRange,
+          0,
+          1,
+        );
+        const maxRadius = 10;
+        const minRadius = 2;
+        const radius = maxRadius - (maxRadius - minRadius) * progress;
         
-        // Draw torpedo as a bright line
-        graphics.lineStyle(3, 0xffffff, 1.0);
-        graphics.lineBetween(endX, screenPos.y, screenPos.x, screenPos.y);
+        // Core bright circle
+        graphics.fillStyle(0xffffff, 1.0);
+        graphics.fillCircle(screenPos.x, screenPos.y, radius);
         
-        // Add glow effect
-        graphics.lineStyle(6, 0xffffff, 0.3);
-        graphics.lineBetween(endX, screenPos.y, screenPos.x, screenPos.y);
+        // Faint outer halo for a softer, pixel-blast feel
+        graphics.lineStyle(1, 0xffffff, 0.5);
+        graphics.strokeCircle(screenPos.x, screenPos.y, radius + 1);
         
         graphics.setVisible(true);
       }
@@ -739,21 +858,28 @@ export class CombatViewScene extends Phaser.Scene {
     const energy = gameState.player.energy;
     const kills = gameState.player.kills;
     const tracking = this.viewDirection === ViewDirection.FORE ? 'F' : 'A';
-
+ 
     this.hudText.setText(
-      `V: ${velocity.toString().padStart(2, '0')}    E: ${energy}    K: ${kills.toString().padStart(2, '0')}    T: ${tracking}`
+      ` V:${velocity.toString().padStart(2, '0')}` +
+      `  E:${Math.floor(energy).toString().padStart(4, '0')}` +
+      `  K:${kills.toString().padStart(2, '0')}` +
+      `  T:${tracking}`,
     );
-
-    // Update status bar
-    const shieldsStatus = gameState.player.shieldsActive ? 'ON' : 'OFF';
-    const computerStatus = gameState.player.computerActive ? 'ON' : 'OFF';
-
+ 
+    const shieldsStatus = gameState.player.shieldsActive ? 'ON ' : 'OFF';
+    const computerStatus = gameState.player.computerActive ? 'ON ' : 'OFF';
+ 
     this.statusBar.setText(
-      `[S] SHIELDS: ${shieldsStatus}   [T] COMPUTER: ${computerStatus}   [F] FORE  [A] AFT  [G] CHART`
+      ` [S] SHIELDS:${shieldsStatus}` +
+      `  [T] COMPUTER:${computerStatus}` +
+      `   [F] FORE  [A] AFT  [G] CHART`,
     );
   }
 
   shutdown(): void {
+    // DIAGNOSTIC: Log shutdown
+    console.log('[CombatView] shutdown() called - cleaning up listeners');
+    
     if (this.vectorRenderer) {
       this.vectorRenderer.destroy();
     }
@@ -798,17 +924,9 @@ export class CombatViewScene extends Phaser.Scene {
     
     // Remove all input manager listeners to prevent memory leaks
     if (this.inputManager) {
-      this.inputManager.off(InputAction.TOGGLE_SHIELDS);
-      this.inputManager.off(InputAction.TOGGLE_COMPUTER);
-      this.inputManager.off(InputAction.VIEW_FORE);
-      this.inputManager.off(InputAction.VIEW_AFT);
-      this.inputManager.off(InputAction.GALACTIC_CHART);
-      this.inputManager.off(InputAction.LONG_RANGE_SCAN);
-      this.inputManager.off(InputAction.FIRE_TORPEDO);
-      this.inputManager.off(InputAction.DOCK);
-      for (let i = 0; i <= 9; i++) {
-        this.inputManager.off(`SPEED_${i}` as InputAction);
-      }
+      // Use removeAllListeners to clear all event listeners for this scene
+      // This is more reliable than trying to remove individual listeners
+      this.inputManager.removeAllListeners();
     }
   }
 }

@@ -72,6 +72,9 @@ export class HyperspaceScene extends Phaser.Scene {
     this.driftX = 0;
     this.driftY = 0;
 
+    // Clear any existing star lines from previous scene instances
+    this.starLines = [];
+
     Debug.log(`Hyperspace: Jumping from (${this.currentSector?.x}, ${this.currentSector?.y}) to (${this.targetSector.x}, ${this.targetSector.y})`);
   }
 
@@ -181,6 +184,11 @@ export class HyperspaceScene extends Phaser.Scene {
     const speed = 200 * deltaSeconds;
 
     for (const line of this.starLines) {
+      // Check if line and its geometry are still valid
+      if (!line || !line.geom) {
+        continue;
+      }
+
       const x1 = line.geom.x1;
       const y1 = line.geom.y1;
       
@@ -345,20 +353,22 @@ export class HyperspaceScene extends Phaser.Scene {
 
   private completeJump(): void {
     if (!this.targetSector) return;
-
+ 
     // Update player sector
     this.galaxyManager.movePlayerToSector(this.targetSector);
     
     const gameState = this.gameStateManager.getGameState();
     gameState.player.sector = this.targetSector;
-
+ 
     Debug.log(`Hyperspace: Jump complete to (${this.targetSector.x}, ${this.targetSector.y})`);
-
-    // Return to game
+ 
+    // Return to main game in combat view at the new sector
     this.gameStateManager.setState(GameStateType.PLAYING);
-    this.scene.stop();
-    
-    // Return to combat view or galactic chart
-    // This would be handled by the calling scene
+    this.scene.start('CombatView', { direction: 'FORE' });
+  }
+
+  shutdown(): void {
+    // Clean up star lines array to prevent null reference errors on scene restart
+    this.starLines = [];
   }
 }

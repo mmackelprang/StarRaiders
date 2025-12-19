@@ -50,6 +50,11 @@ export class LongRangeScanScene extends Phaser.Scene {
     this.gameStateManager = GameStateManager.getInstance();
     this.galaxyManager = GalaxyManager.getInstance();
     this.inputManager = InputManager.getInstance();
+    
+    // Clean up any existing listeners before initializing
+    this.inputManager.removeAllListeners();
+    console.log('[LongRangeScan] create() - cleaned up listeners before initialization');
+    
     this.inputManager.initialize(this);
 
     // Set state
@@ -415,7 +420,7 @@ export class LongRangeScanScene extends Phaser.Scene {
     const kills = gameState.player.kills;
 
     this.hudText.setText(
-      `V: ${velocity.toString().padStart(2, '0')}  E: ${energy}  K: ${kills.toString().padStart(2, '0')}  T: L`
+      `V: ${velocity.toString().padStart(2, '0')}  E: ${Math.floor(energy)}  K: ${kills.toString().padStart(2, '0')}  T: L`
     );
 
     // Flicker false echoes using timer-based approach instead of random
@@ -429,6 +434,9 @@ export class LongRangeScanScene extends Phaser.Scene {
   }
   
   shutdown(): void {
+    // DIAGNOSTIC: Log shutdown
+    console.log('[LongRangeScan] shutdown() called - cleaning up listeners');
+    
     // Clean up all text objects to prevent memory leaks and WebGL errors
     for (const marker of this.enemyMarkers) {
       marker.destroy();
@@ -445,11 +453,9 @@ export class LongRangeScanScene extends Phaser.Scene {
     }
     this.rangeLabels = [];
     
-    // Remove input listeners
-    this.inputManager.off(InputAction.LONG_RANGE_SCAN);
-    this.inputManager.off(InputAction.VIEW_FORE);
-    this.inputManager.off(InputAction.VIEW_AFT);
-    this.inputManager.off(InputAction.GALACTIC_CHART);
-    this.inputManager.off(InputAction.HYPERSPACE);
+    // Remove all input listeners to prevent memory leaks
+    if (this.inputManager) {
+      this.inputManager.removeAllListeners();
+    }
   }
 }

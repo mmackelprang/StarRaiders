@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Torpedo, TorpedoDirection } from '@entities/Torpedo';
+import { Torpedo, TorpedoDirection, TorpedoEmitterSide } from '@entities/Torpedo';
 import { Enemy } from '@entities/Enemy';
 import { Vector3D } from '@utils/Types';
 import { GameStateManager } from './GameStateManager';
@@ -19,6 +19,8 @@ export class CombatSystem {
   private nextTorpedoId: number = 0;
   private gameStateManager: GameStateManager;
   private pesclrSystem: PESCLRSystem;
+  // Alternate phasor emitter left/right to mimic original game
+  private lastEmitterSide: TorpedoEmitterSide = TorpedoEmitterSide.RIGHT;
   
   // Lock indicator thresholds
   private readonly hLockThreshold: number = 5; // metrons horizontal tolerance
@@ -102,9 +104,20 @@ export class CombatSystem {
     // Consume energy
     gameState.player.energy -= this.torpedoEnergyCost;
     
-    // Create torpedo
+    // Create torpedo and alternate emitter side (left/right)
     const torpedoId = `torpedo_${this.nextTorpedoId++}`;
-    const torpedo = new Torpedo(torpedoId, playerPosition, direction);
+    const emitterSide =
+      this.lastEmitterSide === TorpedoEmitterSide.RIGHT
+        ? TorpedoEmitterSide.LEFT
+        : TorpedoEmitterSide.RIGHT;
+    this.lastEmitterSide = emitterSide;
+
+    const torpedo = new Torpedo(
+      torpedoId,
+      playerPosition,
+      direction,
+      emitterSide,
+    );
     
     // Add inaccuracy if photon system is damaged
     if (gameState.player.systems.photon === SystemStatus.DAMAGED) {

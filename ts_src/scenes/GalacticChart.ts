@@ -35,6 +35,11 @@ export class GalacticChartScene extends Phaser.Scene {
     this.galaxyManager = GalaxyManager.getInstance();
     this.gameStateManager = GameStateManager.getInstance();
     this.inputManager = InputManager.getInstance();
+    
+    // Clean up any existing listeners before initializing
+    this.inputManager.removeAllListeners();
+    console.log('[GalacticChart] create() - cleaned up listeners before initialization');
+    
     this.inputManager.initialize(this);
 
     // Set state
@@ -152,34 +157,34 @@ export class GalacticChartScene extends Phaser.Scene {
   }
 
   private createHUD(): void {
-    const hudX = this.gridOffsetX + GALAXY_SIZE * this.cellSize + 50;
-    const hudY = 100;
-
+    const hudX = this.gridOffsetX + GALAXY_SIZE * this.cellSize + 40;
+    const hudY = 80;
+ 
     const galaxy = this.galaxyManager.getGalaxyData();
     const gameState = this.gameStateManager.getGameState();
-
-    // Create comprehensive HUD
+ 
     const hudContent = [
-      'GALACTIC CHART',
+      ' GALACTIC  CHART',
       '',
-      `Difficulty: ${gameState.difficulty}`,
-      `Enemies: ${galaxy.totalEnemies - galaxy.enemiesDestroyed}/${galaxy.totalEnemies}`,
-      `Starbases: ${galaxy.totalStarbases - galaxy.starbasesDestroyed}/${galaxy.totalStarbases}`,
-      `Kills: ${gameState.player.kills}`,
+      ` DIFFICULTY : ${gameState.difficulty}`,
+      ` ENEMIES    : ${galaxy.totalEnemies - galaxy.enemiesDestroyed}/${galaxy.totalEnemies}`,
+      ` STARBASES  : ${galaxy.totalStarbases - galaxy.starbasesDestroyed}/${galaxy.totalStarbases}`,
+      ` KILLS      : ${gameState.player.kills}`,
       '',
-      'Controls:',
-      'Arrow Keys: Move cursor',
-      'H: Hyperspace',
-      'G/F: Close chart',
+      ' CONTROLS',
+      '  ARROWS : MOVE CURSOR',
+      '  H      : HYPERWARP',
+      '  G / F  : RETURN',
       '',
-      'Selected Sector:',
-      '', // Will be updated in update()
+      ' SELECTED SECTOR',
+      '',
     ].join('\n');
-
+ 
     this.hudText = this.add.text(hudX, hudY, hudContent, {
       fontSize: '16px',
       color: '#00ff00',
-      lineSpacing: 4,
+      fontFamily: 'monospace',
+      lineSpacing: 2,
     });
   }
 
@@ -247,8 +252,12 @@ export class GalacticChartScene extends Phaser.Scene {
   }
 
   private initiateHyperspace(): void {
-    // Will be implemented in Phase 15
-    console.log('Hyperspace to:', this.cursorPosition);
+    // Start hyperspace jump to the sector currently under the cursor
+    const target = { x: this.cursorPosition.x, y: this.cursorPosition.y };
+
+    console.log('[GalacticChart] Initiating hyperspace to:', target);
+
+    this.scene.start('Hyperspace', { targetSector: target });
   }
 
   update(time: number, delta: number): void {
@@ -263,55 +272,51 @@ export class GalacticChartScene extends Phaser.Scene {
     const gameState = this.gameStateManager.getGameState();
     const sector = galaxy.sectors[this.cursorPosition.x][this.cursorPosition.y];
     
-    // Build sector info
-    const sectorInfo = [];
+    const sectorInfo: string[] = [];
     
     if (sector.enemies.length === 0 && !sector.starbase) {
-      sectorInfo.push('Empty');
+      sectorInfo.push(' EMPTY');
     } else {
       if (sector.enemies.length > 0) {
-        sectorInfo.push(`Enemies: ${sector.enemies.length}`);
+        sectorInfo.push(` ENEMIES : ${sector.enemies.length}`);
       }
       if (sector.starbase) {
         const status = sector.starbase.underAttack ? ' (UNDER ATTACK)' : '';
-        sectorInfo.push(`Starbase${status}`);
+        sectorInfo.push(` STARBASE${status}`);
       }
     }
     
     if (sector.hasPlayer) {
-      sectorInfo.push('Current Location');
+      sectorInfo.push(' CURRENT LOCATION');
     }
     
-    // Update HUD text
-    const hudContent = [
-      'GALACTIC CHART',
+    const hudLines = [
+      ' GALACTIC  CHART',
       '',
-      `Difficulty: ${gameState.difficulty}`,
-      `Enemies: ${galaxy.totalEnemies - galaxy.enemiesDestroyed}/${galaxy.totalEnemies}`,
-      `Starbases: ${galaxy.totalStarbases - galaxy.starbasesDestroyed}/${galaxy.totalStarbases}`,
-      `Kills: ${gameState.player.kills}`,
+      ` DIFFICULTY : ${gameState.difficulty}`,
+      ` ENEMIES    : ${galaxy.totalEnemies - galaxy.enemiesDestroyed}/${galaxy.totalEnemies}`,
+      ` STARBASES  : ${galaxy.totalStarbases - galaxy.starbasesDestroyed}/${galaxy.totalStarbases}`,
+      ` KILLS      : ${gameState.player.kills}`,
       '',
-      'Controls:',
-      'Arrow Keys: Move cursor',
-      'H: Hyperspace',
-      'G/F: Close chart',
+      ' CONTROLS',
+      '  ARROWS : MOVE CURSOR',
+      '  H      : HYPERWARP',
+      '  G / F  : RETURN',
       '',
-      `Selected Sector (${this.cursorPosition.x},${this.cursorPosition.y}):`,
-      sectorInfo.join(', ') || 'Empty',
-    ].join('\n');
+      ` SELECTED SECTOR (${this.cursorPosition.x},${this.cursorPosition.y})`,
+      sectorInfo.join('\n') || ' EMPTY',
+    ];
     
-    this.hudText.setText(hudContent);
+    this.hudText.setText(hudLines.join('\n'));
   }
   
   shutdown(): void {
-    // Remove input listeners to prevent memory leaks
-    this.inputManager.off(InputAction.NAV_UP);
-    this.inputManager.off(InputAction.NAV_DOWN);
-    this.inputManager.off(InputAction.NAV_LEFT);
-    this.inputManager.off(InputAction.NAV_RIGHT);
-    this.inputManager.off(InputAction.GALACTIC_CHART);
-    this.inputManager.off(InputAction.VIEW_FORE);
-    this.inputManager.off(InputAction.LONG_RANGE_SCAN);
-    this.inputManager.off(InputAction.HYPERSPACE);
+    // DIAGNOSTIC: Log shutdown
+    console.log('[GalacticChart] shutdown() called - cleaning up listeners');
+    
+    // Remove all input listeners to prevent memory leaks
+    if (this.inputManager) {
+      this.inputManager.removeAllListeners();
+    }
   }
 }

@@ -28,20 +28,20 @@ export class Star extends Phaser.GameObjects.Graphics {
     // Move based on velocity and layer speed multiplier
     const layerSpeed = this.getLayerSpeedMultiplier();
     
-    // Enhance movement with more visible parallax
-    const movementScale = 5; // Increase movement visibility
-    this.x -= velocityX * layerSpeed * speedMultiplier * deltaTime * movementScale;
-    this.y -= velocityY * layerSpeed * speedMultiplier * deltaTime * movementScale;
+    // Base movement with parallax (adjusted for better visibility)
+    const movementScale = 3; // Balanced movement visibility
+    this.x -= velocityX * layerSpeed * deltaTime * movementScale;
+    this.y -= velocityY * layerSpeed * deltaTime * movementScale;
     
-    // Add Z-axis movement effect (stars getting closer/further based on forward velocity)
-    // Stars in back layers move slower, creating depth perception
-    if (velocityY > 0) {
-      // Moving forward - stars expand from center
+    // Add subtle Z-axis expansion effect for forward movement
+    // Creates depth perception when moving forward at higher speeds
+    if (Math.abs(velocityY) > 1) {
       const centerX = this.scene.scale.width / 2;
       const centerY = this.scene.scale.height / 2;
       const dx = this.x - centerX;
       const dy = this.y - centerY;
-      const expansionRate = layerSpeed * speedMultiplier * deltaTime * 2;
+      // Subtle expansion rate based on velocity and layer
+      const expansionRate = layerSpeed * Math.abs(velocityY) * deltaTime * 0.001;
       this.x += dx * expansionRate;
       this.y += dy * expansionRate;
     }
